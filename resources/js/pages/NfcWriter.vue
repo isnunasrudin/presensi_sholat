@@ -157,21 +157,31 @@ const copyUrl = async () => {
 // Write to NFC
 const writeToNFC = async () => {
   if (!nfcSupported.value) {
-    toast.add({ 
-      severity: 'error', 
-      summary: 'Error', 
-      detail: 'Web NFC API tidak didukung di browser ini', 
-      life: 3000 
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Web NFC API tidak didukung di browser ini. Gunakan Chrome/Edge di Android.',
+      life: 5000
     });
     return;
   }
 
   if (!selectedUser.value) {
-    toast.add({ 
-      severity: 'warn', 
-      summary: 'Peringatan', 
-      detail: 'Harap pilih pengguna terlebih dahulu', 
-      life: 3000 
+    toast.add({
+      severity: 'warn',
+      summary: 'Peringatan',
+      detail: 'Harap pilih pengguna terlebih dahulu',
+      life: 3000
+    });
+    return;
+  }
+
+  if (!userUrl.value) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Peringatan',
+      detail: 'URL tidak valid',
+      life: 3000
     });
     return;
   }
@@ -182,41 +192,70 @@ const writeToNFC = async () => {
   try {
     // Create NDEF record with the user URL
     const ndef = new NDEFReader();
-    
-    // Write to NFC tag
-    await ndef.write({
-      records: [{
-        recordType: "url",
-        data: userUrl.value
-      }]
+
+    // Show instruction toast
+    toast.add({
+      severity: 'info',
+      summary: 'Info',
+      detail: 'Dekatkan tag NFC ke perangkat Anda...',
+      life: 2000
     });
-    
+
+    // Write to NFC tag with multiple record types for compatibility
+    await ndef.write({
+      records: [
+        {
+          recordType: "url",
+          data: userUrl.value
+        },
+        {
+          recordType: "text",
+          data: userUrl.value
+        }
+      ]
+    });
+
     // Success
     writeResult.value = {
       type: 'success',
       icon: 'pi pi-check-circle',
-      message: 'Berhasil menulis URL ke tag NFC'
+      message: `Berhasil menulis URL ke tag NFC untuk user ID: ${selectedUser.value}`
     };
-    
-    toast.add({ 
-      severity: 'success', 
-      summary: 'Berhasil', 
-      detail: 'URL telah berhasil ditulis ke tag NFC', 
-      life: 3000 
+
+    toast.add({
+      severity: 'success',
+      summary: 'Berhasil',
+      detail: `URL ${userUrl.value} telah berhasil ditulis ke tag NFC`,
+      life: 5000
     });
+
   } catch (error) {
-    // Error
+    console.error('NFC write error:', error);
+
+    // Handle specific error types
+    let errorMessage = 'Gagal menulis ke NFC';
+
+    if (error.name === 'NotAllowedError') {
+      errorMessage = 'Izin NFC ditolak. Aktifkan NFC dan berikan izin melalui browser.';
+    } else if (error.name === 'NotSupportedError') {
+      errorMessage = 'Perangkat tidak mendukung NFC.';
+    } else if (error.name === 'NetworkError') {
+      errorMessage = 'Tag NFC tidak terdeteksi. Dekatkan tag ke perangkat dan coba lagi.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     writeResult.value = {
       type: 'error',
       icon: 'pi pi-times-circle',
-      message: `Gagal menulis ke NFC: ${error.message}`
+      message: errorMessage
     };
-    
-    toast.add({ 
-      severity: 'error', 
-      summary: 'Error', 
-      detail: `Gagal menulis ke NFC: ${error.message}`, 
-      life: 5000 
+
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: errorMessage,
+      life: 5000
     });
   } finally {
     isWriting.value = false;

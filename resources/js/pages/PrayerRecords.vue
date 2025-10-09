@@ -1,7 +1,7 @@
 <template>
     <div class="prayer-records">
         <div class="page-header">
-            <h1 class="page-title">Catatan Sholat</h1>
+            <h1 class="page-title">Catatan Sholat Harian</h1>
             <Button
                 v-if="authStore.isAdmin"
                 label="Tambah Catatan"
@@ -13,179 +13,138 @@
         <Card>
             <template #content>
                 <div class="filters">
+                    <div class="filter-group">
+                        <label>Tanggal</label>
+                        <Calendar
+                            v-model="selectedDate"
+                            dateFormat="yy-mm-dd"
+                            @date-select="fetchDailyRecap"
+                            :showIcon="true"
+                        />
+                    </div>
                     <div v-if="authStore.isAdmin" class="filter-group">
-                        <label>Pengguna</label>
+                        <label>Rombel</label>
                         <Dropdown
-                            v-model="filters.user_id"
-                            :options="[{ id: null, name: 'Semua Pengguna' }, ...users]"
-                            optionLabel="name"
+                            v-model="filters.rombongan_belajar_id"
+                            :options="[{ id: null, nama_rombel: 'Semua Rombel' }, ...rombels]"
+                            optionLabel="nama_rombel"
                             optionValue="id"
-                            placeholder="Semua Pengguna"
-                            @change="fetchRecords"
+                            placeholder="Semua Rombel"
+                            @change="fetchDailyRecap"
                             filter
                         />
                     </div>
                     <div class="filter-group">
-                        <label>Jenis Sholat</label>
-                        <Dropdown
-                            v-model="filters.prayer_type"
-                            :options="prayerTypes"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Semua"
-                            @change="fetchRecords"
+                        <label>&nbsp;</label>
+                        <Button
+                            label="Refresh"
+                            icon="pi pi-refresh"
+                            @click="fetchDailyRecap"
+                            severity="secondary"
                         />
                     </div>
-                    <div class="filter-group">
-                        <label>Tanggal Mulai</label>
-                        <Calendar
-                            v-model="filters.start_date"
-                            dateFormat="yy-mm-dd"
-                            @date-select="fetchRecords"
-                        />
-                    </div>
-                    <div class="filter-group">
-                        <label>Tanggal Akhir</label>
-                        <Calendar
-                            v-model="filters.end_date"
-                            dateFormat="yy-mm-dd"
-                            @date-select="fetchRecords"
-                        />
-                    </div>
-                    <Button
-                        label="Hapus Filter"
-                        icon="pi pi-filter-slash"
-                        @click="clearFilters"
-                        severity="secondary"
-                    />
                 </div>
 
-                <!-- Mobile DataView -->
-                <DataView :value="records" :loading="loading" class="prayer-dataview">
-                    <template #list="slotProps">
-                        <div class="dataview-item" v-for="record in slotProps.items" :key="record.id">
-                            <div class="record-header">
-                                <div class="prayer-icon">
-                                    <i class="pi pi-sun"></i>
-                                </div>
-                                <div class="record-main-info">
-                                    <h3 class="prayer-type">{{ getPrayerTypeLabel(record.prayer_type) }}</h3>
-                                    <p class="record-date">
-                                        <i class="pi pi-calendar"></i>
-                                        {{ formatDate(record.date) }}
-                                    </p>
-                                </div>
-                                <span :class="getStatusClass(record.status)">
-                                    {{ getStatusLabel(record.status) }}
-                                </span>
-                            </div>
-                            
-                            <div class="record-details">
-                                <div v-if="authStore.isAdmin" class="detail-item">
-                                    <i class="pi pi-user detail-icon"></i>
-                                    <div class="detail-content">
-                                        <span class="detail-label">Pengguna</span>
-                                        <span class="detail-value">{{ record.user?.name }}</span>
-                                    </div>
-                                </div>
-                                <div v-if="record.notes" class="detail-item notes-item">
-                                    <i class="pi pi-comment detail-icon"></i>
-                                    <div class="detail-content">
-                                        <span class="detail-label">Catatan</span>
-                                        <span class="detail-value">{{ record.notes }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div v-if="authStore.isAdmin" class="item-actions">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    label="Edit"
-                                    @click="openDialog(record)"
-                                    severity="info"
-                                    size="small"
-                                    outlined
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    label="Hapus"
-                                    @click="confirmDelete(record)"
-                                    severity="danger"
-                                    size="small"
-                                    outlined
-                                />
-                            </div>
-                        </div>
-                    </template>
-                    <template #empty>
-                        <div class="empty-state">
-                            <i class="pi pi-inbox" style="font-size: 3rem; color: #9ca3af;"></i>
-                            <p>Tidak ada catatan sholat ditemukan</p>
-                        </div>
-                    </template>
-                </DataView>
-
-                <!-- Desktop Table View -->
+                <!-- Daily Recap Table -->
                 <DataTable
-                    :value="records"
+                    :value="dailyRecords"
                     :loading="loading"
                     responsiveLayout="scroll"
-                    :rows="pagination.per_page"
-                    class="mt-4 desktop-table w-full"
+                    class="daily-recap-table mt-4"
+                    :paginator="true"
+                    :rows="20"
+                    :totalRecords="dailyRecords.length"
+                    dataKey="user_id"
                 >
-                    <Column v-if="authStore.isAdmin" field="user.name" header="Pengguna"></Column>
-                    <Column field="date" header="Tanggal">
+                    <Column field="name" header="Nama" sortable>
                         <template #body="slotProps">
-                            {{ formatDate(slotProps.data.date) }}
+                            <div class="user-info">
+                                <div class="user-name">{{ slotProps.data.name }}</div>
+                                <div class="user-email">{{ getUserEmail(slotProps.data.user_id) }}</div>
+                            </div>
                         </template>
                     </Column>
-                    <Column field="prayer_type" header="Jenis Sholat">
+
+                    <Column field="rombel" header="Rombel" sortable>
                         <template #body="slotProps">
-                            {{ getPrayerTypeLabel(slotProps.data.prayer_type) }}
+                            <span class="rombel-badge">{{ slotProps.data.rombel }}</span>
                         </template>
                     </Column>
-                    <Column field="status" header="Status">
+
+                    <Column field="dhuha_status" header="Sholat Dhuha" sortable>
                         <template #body="slotProps">
-                            <span :class="getStatusClass(slotProps.data.status)">
-                                {{ getStatusLabel(slotProps.data.status) }}
-                            </span>
+                            <div class="prayer-column">
+                                <span :class="getPrayerBadgeClass(slotProps.data.dhuha_status)">
+                                    {{ getPrayerBadgeText(slotProps.data.dhuha_status) }}
+                                </span>
+                                <small v-if="slotProps.data.dhuha_notes" class="notes-text">
+                                    {{ slotProps.data.dhuha_notes }}
+                                </small>
+                            </div>
                         </template>
                     </Column>
-                    <Column field="notes" header="Catatan">
+
+                    <Column field="dhuhur_status" header="Sholat Dhuhur" sortable>
                         <template #body="slotProps">
-                            {{ slotProps.data.notes || '-' }}
+                            <div class="prayer-column">
+                                <span :class="getPrayerBadgeClass(slotProps.data.dhuhur_status)">
+                                    {{ getPrayerBadgeText(slotProps.data.dhuhur_status) }}
+                                </span>
+                                <small v-if="slotProps.data.dhuhur_notes" class="notes-text">
+                                    {{ slotProps.data.dhuhur_notes }}
+                                </small>
+                            </div>
                         </template>
                     </Column>
-                    <Column v-if="authStore.isAdmin" header="Aksi">
+
+                    <Column header="Catatan">
                         <template #body="slotProps">
-                            <div class="action-buttons">
+                            <div class="combined-notes">
+                                <div v-if="slotProps.data.dhuha_notes" class="note-item">
+                                    <strong>Dhuha:</strong> {{ slotProps.data.dhuha_notes }}
+                                </div>
+                                <div v-if="slotProps.data.dhuhur_notes" class="note-item">
+                                    <strong>Dhuhur:</strong> {{ slotProps.data.dhuhur_notes }}
+                                </div>
+                                <span v-if="!slotProps.data.dhuha_notes && !slotProps.data.dhuhur_notes" class="no-notes">
+                                    -
+                                </span>
+                            </div>
+                        </template>
+                    </Column>
+
+                    <Column v-if="authStore.isAdmin" header="Hapus Data Rekap" style="min-width: 150px;">
+                        <template #body="slotProps">
+                            <div class="delete-actions">
                                 <Button
-                                    icon="pi pi-pencil"
-                                    @click="openDialog(slotProps.data)"
-                                    severity="info"
+                                    icon="pi pi-trash"
+                                    label="Hapus Dhuha"
+                                    @click="confirmDeleteDailyRecord(slotProps.data, 'dhuha')"
+                                    severity="warning"
+                                    size="small"
                                     text
-                                    rounded
+                                    :disabled="!slotProps.data.dhuha_record_id"
+                                    v-tooltip="'Hapus data sholat Dhuha'"
                                 />
                                 <Button
                                     icon="pi pi-trash"
-                                    @click="confirmDelete(slotProps.data)"
+                                    label="Hapus Dhuhur"
+                                    @click="confirmDeleteDailyRecord(slotProps.data, 'dhuhur')"
                                     severity="danger"
+                                    size="small"
                                     text
-                                    rounded
+                                    :disabled="!slotProps.data.dhuhur_record_id"
+                                    v-tooltip="'Hapus data sholat Dhuhur'"
                                 />
                             </div>
                         </template>
                     </Column>
                 </DataTable>
 
-                <Paginator
-                    v-if="pagination.total > 0"
-                    :rows="pagination.per_page"
-                    :totalRecords="pagination.total"
-                    :first="(pagination.current_page - 1) * pagination.per_page"
-                    @page="onPageChange"
-                    class="mt-4"
-                />
+                <div v-if="!loading && dailyRecords.length === 0" class="empty-state">
+                    <i class="pi pi-inbox" style="font-size: 3rem; color: #9ca3af;"></i>
+                    <p>Tidak ada data untuk tanggal {{ formatDate(selectedDate) }}</p>
+                </div>
             </template>
         </Card>
 
@@ -280,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
@@ -290,29 +249,21 @@ const authStore = useAuthStore();
 const toast = useToast();
 const confirm = useConfirm();
 
-const records = ref([]);
+const dailyRecords = ref([]);
 const users = ref([]);
+const rombels = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
 const dialogMode = ref('create');
 const errors = ref({});
+const selectedDate = ref(new Date());
 
 const filters = ref({
-    user_id: null,
-    prayer_type: null,
-    start_date: null,
-    end_date: null,
-});
-
-const pagination = ref({
-    current_page: 1,
-    per_page: 15,
-    total: 0,
+    rombongan_belajar_id: null,
 });
 
 const prayerTypes = [
-    { label: 'All', value: null },
     { label: 'Dhuhur', value: 'dhuhur' },
     { label: 'Dhuha', value: 'dhuha' },
 ];
@@ -334,7 +285,7 @@ const formData = ref({
 
 const fetchUsers = async () => {
     if (!authStore.isAdmin) return;
-    
+
     try {
         const response = await api.get('/users');
         users.value = response.data.data || response.data;
@@ -343,34 +294,37 @@ const fetchUsers = async () => {
     }
 };
 
-const fetchRecords = async () => {
+const fetchRombels = async () => {
+    if (!authStore.isAdmin) return;
+
+    try {
+        const response = await api.get('/rombongan-belajar');
+        rombels.value = response.data.data || response.data;
+    } catch (error) {
+        console.error('Failed to fetch rombels:', error);
+    }
+};
+
+const fetchDailyRecap = async () => {
     loading.value = true;
     try {
         const params = {
-            page: pagination.value.current_page,
-            ...filters.value,
+            date: formatDateForAPI(selectedDate.value),
         };
 
-        if (params.start_date) {
-            params.start_date = formatDateForAPI(params.start_date);
-        }
-        if (params.end_date) {
-            params.end_date = formatDateForAPI(params.end_date);
+        if (filters.value.rombongan_belajar_id) {
+            params.rombongan_belajar_id = filters.value.rombongan_belajar_id;
         }
 
-        const response = await api.get('/prayer-records', { params });
-        records.value = response.data.data;
-        pagination.value = {
-            current_page: response.data.current_page,
-            per_page: response.data.per_page,
-            total: response.data.total,
-        };
+        const response = await api.get('/prayer-records-daily-recap', { params });
+        dailyRecords.value = response.data;
     } catch (error) {
-        toast.add({ 
-            severity: 'error', 
-            summary: 'Error', 
-            detail: 'Failed to fetch records', 
-            life: 3000 
+        console.error('Failed to fetch daily recap:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Gagal mengambil data harian',
+            life: 3000
         });
     } finally {
         loading.value = false;
@@ -395,7 +349,7 @@ const openDialog = (record = null) => {
             id: null,
             user_id: authStore.isAdmin ? null : authStore.user.id,
             prayer_type: null,
-            date: new Date(),
+            date: selectedDate.value,
             status: null,
             notes: '',
         };
@@ -421,33 +375,33 @@ const saveRecord = async () => {
 
         if (dialogMode.value === 'edit') {
             await api.put(`/prayer-records/${formData.value.id}`, data);
-            toast.add({ 
-                severity: 'success', 
-                summary: 'Success', 
-                detail: 'Record updated successfully', 
-                life: 3000 
+            toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Record updated successfully',
+                life: 3000
             });
         } else {
             await api.post('/prayer-records', data);
-            toast.add({ 
-                severity: 'success', 
-                summary: 'Success', 
-                detail: 'Record created successfully', 
-                life: 3000 
+            toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Record created successfully',
+                life: 3000
             });
         }
 
         dialogVisible.value = false;
-        fetchRecords();
+        fetchDailyRecap();
     } catch (error) {
         if (error.response?.data?.errors) {
             errors.value = error.response.data.errors;
         } else {
-            toast.add({ 
-                severity: 'error', 
-                summary: 'Error', 
-                detail: error.response?.data?.message || 'Failed to save record', 
-                life: 3000 
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: error.response?.data?.message || 'Failed to save record',
+                life: 3000
             });
         }
     } finally {
@@ -455,48 +409,52 @@ const saveRecord = async () => {
     }
 };
 
-const confirmDelete = (record) => {
+const confirmDeleteDailyRecord = (record, prayerType) => {
+    const recordId = prayerType === 'dhuha' ? record.dhuha_record_id : record.dhuhur_record_id;
+    if (!recordId) return;
+
+    const prayerName = prayerType === 'dhuha' ? 'Dhuha' : 'Dhuhur';
+
     confirm.require({
-        message: 'Are you sure you want to delete this record?',
-        header: 'Confirm Delete',
+        message: `Apakah Anda yakin ingin menghapus data sholat ${prayerName} untuk ${record.name} pada ${formatDate(selectedDate)}?`,
+        header: 'Konfirmasi Hapus',
         icon: 'pi pi-exclamation-triangle',
-        accept: () => deleteRecord(record.id),
+        accept: () => deleteDailyRecord(record.user_id, formatDateForAPI(selectedDate), prayerType),
+        reject: () => {}
     });
 };
 
-const deleteRecord = async (id) => {
+const deleteDailyRecord = async (userId, date, prayerType) => {
     try {
-        await api.delete(`/prayer-records/${id}`);
-        toast.add({ 
-            severity: 'success', 
-            summary: 'Success', 
-            detail: 'Record deleted successfully', 
-            life: 3000 
+        await api.delete('/prayer-records-delete-by-user-date-type', {
+            data: {
+                user_id: userId,
+                date: date,
+                prayer_type: prayerType,
+            }
         });
-        fetchRecords();
+
+        toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Data sholat ${prayerType === 'dhuha' ? 'Dhuha' : 'Dhuhur'} berhasil dihapus`,
+            life: 3000
+        });
+
+        fetchDailyRecap();
     } catch (error) {
-        toast.add({ 
-            severity: 'error', 
-            summary: 'Error', 
-            detail: 'Failed to delete record', 
-            life: 3000 
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete record',
+            life: 3000
         });
     }
 };
 
-const clearFilters = () => {
-    filters.value = {
-        user_id: null,
-        prayer_type: null,
-        start_date: null,
-        end_date: null,
-    };
-    fetchRecords();
-};
-
-const onPageChange = (event) => {
-    pagination.value.current_page = event.page + 1;
-    fetchRecords();
+const getUserEmail = (userId) => {
+    const user = users.value.find(u => u.id === userId);
+    return user?.email || '';
 };
 
 const formatDate = (date) => {
@@ -516,36 +474,34 @@ const formatDateForAPI = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const getPrayerTypeLabel = (type) => {
-    return type.charAt(0).toUpperCase() + type.slice(1);
-};
-
-const getStatusLabel = (status) => {
-    const labels = {
-        sholat: 'Sholat',
-        tidak_sholat: 'Tidak Sholat',
-        halangan: 'Halangan',
-    };
-    return labels[status] || status;
-};
-
-const getStatusClass = (status) => {
+const getPrayerBadgeClass = (status) => {
     const classes = {
-        sholat: 'status-badge success',
-        tidak_sholat: 'status-badge danger',
-        halangan: 'status-badge warning',
+        sholat: 'prayer-badge success',
+        tidak_sholat: 'prayer-badge danger',
+        halangan: 'prayer-badge warning',
+        null: 'prayer-badge empty',
     };
-    return classes[status] || 'status-badge';
+    return classes[status] || 'prayer-badge empty';
+};
+
+const getPrayerBadgeText = (status) => {
+    const texts = {
+        sholat: 'OK',
+        tidak_sholat: '-',
+        halangan: 'Halangan',
+        null: '-',
+    };
+    return texts[status] || '-';
 };
 
 onMounted(() => {
-    fetchRecords();
+    fetchDailyRecap();
     fetchUsers();
+    fetchRombels();
 });
 </script>
 
 <style scoped>
-/* Mobile-first styles */
 .prayer-records {
     display: flex;
     flex-direction: column;
@@ -588,35 +544,6 @@ onMounted(() => {
     font-size: 0.8rem;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-}
-
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.status-badge.success {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.status-badge.danger {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-badge.warning {
-    background: #fef3c7;
-    color: #92400e;
-}
-
 .dialog-form {
     display: flex;
     flex-direction: column;
@@ -648,150 +575,117 @@ onMounted(() => {
     margin-top: 1.5rem;
 }
 
-/* Prayer DataView Styles */
-.prayer-dataview {
-    display: block;
-}
-
-/* Hide desktop table on mobile */
-.desktop-table {
-    display: none;
-}
-
-.dataview-item {
-    background: rgba(255, 255, 255, 0.12);
+/* Daily Recap Table Styles */
+.daily-recap-table {
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 16px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
-.dataview-item:hover {
-    background: rgba(255, 255, 255, 0.18);
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.35);
-}
-
-.record-header {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    align-items: flex-start;
-}
-
-.prayer-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: rgba(16, 185, 129, 0.4);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(16, 185, 129, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow:
-        0 4px 12px rgba(16, 185, 129, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.prayer-icon i {
-    font-size: 1.5rem;
-    color: white;
-}
-
-.record-main-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.prayer-type {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: white;
-    margin: 0 0 0.5rem 0;
-    line-height: 1.4;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.record-date {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.8);
-    margin: 0;
-}
-
-.record-date i {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.record-details {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 0.875rem;
-    margin-bottom: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.detail-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-}
-
-.detail-icon {
-    font-size: 1rem;
-    color: rgba(16, 185, 129, 0.9);
-    margin-top: 0.25rem;
-}
-
-.detail-content {
+.user-info {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    flex: 1;
 }
 
-.detail-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.detail-value {
-    font-size: 0.875rem;
+.user-name {
     font-weight: 600;
     color: white;
+    font-size: 0.9rem;
+}
+
+.user-email {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.rombel-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.prayer-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.prayer-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 50px;
+    display: inline-block;
+}
+
+.prayer-badge.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.prayer-badge.danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.prayer-badge.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.prayer-badge.empty {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.notes-text {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+    line-height: 1.3;
+    max-width: 150px;
     word-break: break-word;
 }
 
-.notes-item .detail-value {
-    font-weight: 400;
-    line-height: 1.5;
+.combined-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 200px;
 }
 
-.item-actions {
+.note-item {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.note-item strong {
+    color: #60a5fa;
+    display: block;
+    margin-bottom: 0.125rem;
+}
+
+.no-notes {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    font-size: 0.8rem;
+}
+
+.delete-actions {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
-    flex-wrap: wrap;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .empty-state {
@@ -807,19 +701,6 @@ onMounted(() => {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.7);
     margin: 0;
-}
-
-/* Tablet and Desktop: Show table, hide DataView */
-@media (min-width: 768px) {
-    /* Hide mobile DataView */
-    .prayer-dataview {
-        display: none;
-    }
-
-    /* Show desktop table */
-    .desktop-table {
-        display: table;
-    }
 }
 
 /* Tablet styles (768px and up) */
@@ -845,10 +726,6 @@ onMounted(() => {
         font-size: 0.875rem;
     }
 
-    .status-badge {
-        font-size: 0.875rem;
-    }
-
     .dialog-form {
         gap: 1.5rem;
         padding: 1rem 0;
@@ -861,6 +738,11 @@ onMounted(() => {
     .dialog-actions {
         gap: 1rem;
         margin-top: 1rem;
+    }
+
+    .delete-actions {
+        flex-direction: row;
+        gap: 0.5rem;
     }
 }
 
@@ -879,4 +761,34 @@ onMounted(() => {
     }
 }
 
+/* Responsive table for mobile */
+@media (max-width: 767px) {
+    .daily-recap-table {
+        font-size: 0.75rem;
+    }
+
+    .user-name {
+        font-size: 0.8rem;
+    }
+
+    .rombel-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    .prayer-badge {
+        font-size: 0.65rem;
+        min-width: 40px;
+    }
+
+    .notes-text,
+    .note-item {
+        font-size: 0.65rem;
+    }
+
+    .delete-actions .p-button {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
 </style>

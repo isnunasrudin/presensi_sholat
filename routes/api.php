@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('prayer-records', PrayerRecordController::class);
     Route::get('/prayer-records-statistics', [PrayerRecordController::class, 'statistics']);
     Route::get('/prayer-records-user-recap', [PrayerRecordController::class, 'userRecap']);
+    Route::get('/prayer-records-daily-recap', [PrayerRecordController::class, 'dailyRecap']);
+    Route::delete('/prayer-records-delete-by-user-date-type', [PrayerRecordController::class, 'deleteByUserDateType']);
 
     // User management routes (admin only for most operations)
     Route::apiResource('users', UserController::class);

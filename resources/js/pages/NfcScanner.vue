@@ -45,8 +45,8 @@
         <!-- Status scan -->
         <div v-if="isScanning" class="scan-status">
           <div class="status-indicator">
-            <i class="pi pi-wifi status-icon"></i>
-            <span>Menunggu kartu NFC...</span>
+            <i class="pi status-icon" :class="isProcessing ? 'pi-spin pi-spinner' : 'pi-wifi'"></i>
+            <span>{{ isProcessing ? 'Memproses kartu...' : 'Menunggu kartu NFC...' }}</span>
           </div>
         </div>
 
@@ -151,6 +151,10 @@ const userInfo = ref(null);
 const showConfirmDialog = ref(false);
 const currentUserName = ref('');
 const scanHistory = ref([]);
+const ndefReader = ref(null);
+const isProcessing = ref(false);
+const lastScannedCard = ref(null);
+const scanCooldown = ref(3000); // 3 seconds cooldown between scans
 
 // Prayer types options
 const prayerTypes = [
@@ -158,8 +162,6 @@ const prayerTypes = [
   { label: 'Dhuha', value: 'dhuha' }
 ];
 
-// Mock NFC scanning simulation
-let scanInterval = null;
 
 // Toggle scan function
 const toggleScan = () => {
@@ -171,144 +173,217 @@ const toggleScan = () => {
 };
 
 // Start scanning
-const startScan = () => {
+const startScan = async () => {
   if (!prayerDate.value || !prayerType.value) {
-    toast.add({ 
-      severity: 'warn', 
-      summary: 'Peringatan', 
-      detail: 'Harap pilih tanggal dan jenis sholat terlebih dahulu', 
-      life: 3000 
+    toast.add({
+      severity: 'warn',
+      summary: 'Peringatan',
+      detail: 'Harap pilih tanggal dan jenis sholat terlebih dahulu',
+      life: 3000
     });
     return;
   }
 
   isScanning.value = true;
-  toast.add({ 
-    severity: 'info', 
-    summary: 'Scan Dimulai', 
-    detail: 'Menunggu kartu NFC...', 
-    life: 3000 
+  toast.add({
+    severity: 'info',
+    summary: 'Scan Dimulai',
+    detail: 'Menunggu kartu NFC...',
+    life: 3000
   });
 
-  readNFC()
-
-  // Simulate NFC scanning
-  // scanInterval = setInterval(() => {
-  //   // Randomly detect a card (in real implementation, this would be triggered by NFC events)
-  //   if (Math.random() > 0.7 && !detectedCard.value) {
-  //     detectCard();
-  //   }
-  // }, 3000);
+  await readNFC();
 };
 
 // Stop scanning
 const stopScan = () => {
   isScanning.value = false;
-  clearInterval(scanInterval);
+  isProcessing.value = false;
+
+  // Stop NFC reader if active
+  if (ndefReader.value) {
+    ndefReader.value = null;
+  }
+
   detectedCard.value = null;
   userInfo.value = null;
-  toast.add({ 
-    severity: 'info', 
-    summary: 'Scan Dihentikan', 
-    detail: 'Scan NFC telah dihentikan', 
-    life: 3000 
+  lastScannedCard.value = null;
+
+  toast.add({
+    severity: 'info',
+    summary: 'Scan Dihentikan',
+    detail: 'Scan NFC telah dihentikan',
+    life: 3000
   });
 };
 
-// Detect NFC card
-const detectCard = () => {
-  // In a real implementation, this would be triggered by NFC events
-  // and would contain the actual URL from the NFC tag
-  // For now, we'll use mock data with public URLs
-  const mockUrls = [
-    `${window.location.origin}/u/1`,
-    `${window.location.origin}/u/2`
-  ];
-  
-  const randomUrl = mockUrls[Math.floor(Math.random() * mockUrls.length)];
-  
-  detectedCard.value = {
-    url: randomUrl,
-    timestamp: new Date()
-  };
-  
-  // Parse user ID from public URL (in real implementation)
-  const userId = randomUrl.split('/').pop();
-  
-  // Fetch user info
-  fetchUserInfo(userId);
+// Check for duplicate scan
+const checkDuplicateScan = (url) => {
+  if (!lastScannedCard.value) return false;
+
+  const timeDiff = Date.now() - new Date(lastScannedCard.value.timestamp).getTime();
+  const isSameCard = lastScannedCard.value.url === url;
+  const isWithinCooldown = timeDiff < scanCooldown.value;
+
+  return isSameCard && isWithinCooldown;
 };
 
-// In a real implementation, you would use the NFC API:
+// Read NFC card
 const readNFC = async () => {
   if (!('NDEFReader' in window)) {
     toast.add({
       severity: 'warn',
       summary: 'Peringatan',
-      detail: 'NFC tidak didukung di browser ini',
+      detail: 'NFC tidak didukung di browser ini. Gunakan browser yang mendukung Web NFC API.',
       life: 5000
     });
+    isScanning.value = false;
     return;
   }
 
   try {
-    const ndef = new NDEFReader();
-    await ndef.scan();
-    
-    ndef.addEventListener("reading", ({ message, serialNumber }) => {
+    ndefReader.value = new NDEFReader();
+    await ndefReader.value.scan();
+
+    ndefReader.value.addEventListener("reading", ({ message, serialNumber }) => {
+      // Prevent processing if already handling a card
+      if (isProcessing.value) {
+        console.log('Already processing a card, ignoring...');
+        return;
+      }
+
       // Process the NFC data
       if (message.records.length > 0) {
         const record = message.records[0];
-        const url = new TextDecoder().decode(record.data);
-        
+        let url = '';
+
+        // Handle different record types
+        try {
+          if (record.recordType === 'url') {
+            url = new TextDecoder().decode(record.data);
+          } else if (record.recordType === 'text') {
+            const textDecoder = new TextDecoder();
+            const textData = textDecoder.decode(record.data);
+            // Check if text data is a URL
+            if (textData.startsWith('http://') || textData.startsWith('https://')) {
+              url = textData;
+            }
+          } else {
+            // Try to decode as text for other record types
+            url = new TextDecoder().decode(record.data);
+          }
+        } catch (decodeError) {
+          console.error('Error decoding NFC data:', decodeError);
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Gagal membaca data NFC',
+            life: 3000
+          });
+          return;
+        }
+
+        // Validate URL format
+        if (!url || !url.includes('/u/')) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Peringatan',
+            detail: 'Kartu NFC tidak valid atau tidak mengandung URL pengguna',
+            life: 3000
+          });
+          return;
+        }
+
+        // Check for duplicate scan
+        if (checkDuplicateScan(url)) {
+          console.log('Duplicate scan detected, ignoring...');
+          return;
+        }
+
+        // Set processing flag
+        isProcessing.value = true;
+
         // Update detected card
         detectedCard.value = {
           url: url,
+          serialNumber: serialNumber,
           timestamp: new Date()
         };
-        
+
+        // Update last scanned card
+        lastScannedCard.value = {
+          url: url,
+          timestamp: new Date()
+        };
+
         // Parse user ID from public URL
         const userId = url.split('/').pop();
-        
-        // Fetch user info
-        fetchUserInfo(userId);
+
+        if (userId) {
+          // Fetch user info
+          fetchUserInfo(userId);
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Format URL tidak valid',
+            life: 3000
+          });
+          isProcessing.value = false;
+        }
       }
     });
+
+    ndefReader.value.addEventListener("error", (event) => {
+      console.error('NFC scan error:', event);
+      toast.add({
+        severity: 'error',
+        summary: 'Error NFC',
+        detail: 'Terjadi kesalahan saat membaca NFC: ' + event.message,
+        life: 3000
+      });
+      isProcessing.value = false;
+    });
+
   } catch (error) {
+    console.error('NFC initialization error:', error);
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'Gagal membaca NFC: ' + error.message,
+      detail: 'Gagal mengaktifkan NFC: ' + error.message,
       life: 3000
     });
+    isScanning.value = false;
+    isProcessing.value = false;
   }
 };
 
 // Fetch user info from URL
 const fetchUserInfo = async (userId) => {
   try {
-    // In a real implementation, this would fetch from the actual URL
-    // For now, we'll get user info from our API
     const response = await api.get(`/users/${userId}`);
     userInfo.value = response.data.data || response.data;
-    
+
     // Show confirmation dialog
     currentUserName.value = userInfo.value.name;
     showConfirmDialog.value = true;
   } catch (error) {
+    console.error('Error fetching user info:', error);
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'Gagal mengambil informasi pengguna',
+      detail: 'Gagal mengambil informasi pengguna. Pastikan kartu NFC terdaftar.',
       life: 3000
     });
+
+    // Reset processing state
+    isProcessing.value = false;
+    detectedCard.value = null;
   }
 };
 
 // Confirm attendance
 const confirmAttendance = (status) => {
-  // In a real implementation, this would directly record the attendance
-  // For now, we'll show the confirmation dialog
   showConfirmDialog.value = true;
 };
 
@@ -316,7 +391,7 @@ const confirmAttendance = (status) => {
 const recordAttendance = async (status) => {
   try {
     showConfirmDialog.value = false;
-    
+
     // Make API call to record attendance
     const response = await api.post('/prayer-records', {
       user_id: userInfo.value.id,
@@ -325,7 +400,7 @@ const recordAttendance = async (status) => {
       status: status,
       notes: `Dicatat melalui scan NFC pada ${new Date().toLocaleString('id-ID')}`
     });
-    
+
     // Add to scan history
     scanHistory.value.unshift({
       userName: userInfo.value.name,
@@ -333,24 +408,50 @@ const recordAttendance = async (status) => {
       statusLabel: getStatusLabel(status),
       time: new Date().toLocaleTimeString()
     });
-    
+
+    // Keep only last 10 records in history
+    if (scanHistory.value.length > 10) {
+      scanHistory.value = scanHistory.value.slice(0, 10);
+    }
+
+    const userName = userInfo.value?.name || 'pengguna';
+
     // Reset for next scan
     detectedCard.value = null;
     userInfo.value = null;
-    
+    isProcessing.value = false;
+
     toast.add({
       severity: 'success',
       summary: 'Berhasil',
-      detail: `Kehadiran ${userInfo.value?.name || 'pengguna'} telah dicatat sebagai ${getStatusLabel(status)}`,
+      detail: `Kehadiran ${userName} telah dicatat sebagai ${getStatusLabel(status)}`,
       life: 3000
     });
   } catch (error) {
+    console.error('Error recording attendance:', error);
+    let errorMessage = 'Gagal mencatat kehadiran';
+
+    if (error.response?.status === 422) {
+      // Handle validation errors (like duplicate entry)
+      const errors = error.response.data.errors;
+      if (errors && Object.keys(errors).length > 0) {
+        errorMessage = Object.values(errors)[0][0];
+      }
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'Gagal mencatat kehadiran: ' + (error.response?.data?.message || error.message),
-      life: 3000
+      detail: errorMessage,
+      life: 5000
     });
+
+    // Reset processing state on error
+    isProcessing.value = false;
   }
 };
 
@@ -387,22 +488,31 @@ const formatDate = (date) => {
 onMounted(() => {
   // Check if NFC is supported in this browser
   if ('NDEFReader' in window) {
-    console.log('NFC is supported');
+    console.log('Web NFC API is supported');
+    toast.add({
+      severity: 'info',
+      summary: 'Info',
+      detail: 'Web NFC API didukung. Siap untuk scan NFC.',
+      life: 3000
+    });
   } else {
-    console.log('NFC is not supported in this browser');
-    toast.add({ 
-      severity: 'warn', 
-      summary: 'Peringatan', 
-      detail: 'NFC tidak didukung di browser ini. Menggunakan simulasi.', 
-      life: 5000 
+    console.log('Web NFC API is not supported in this browser');
+    toast.add({
+      severity: 'warn',
+      summary: 'Peringatan',
+      detail: 'Web NFC API tidak didukung di browser ini. Gunakan Chrome/Edge di Android.',
+      life: 7000
     });
   }
 });
 
 onUnmounted(() => {
-  if (scanInterval) {
-    clearInterval(scanInterval);
+  // Clean up NFC reader
+  if (ndefReader.value) {
+    ndefReader.value = null;
   }
+  isProcessing.value = false;
+  isScanning.value = false;
 });
 </script>
 

@@ -1466,16 +1466,170 @@ h1, h2, h3, h4, h5, h6, p, span, div {
     word-break: break-word;
 }
 
-/* Toast responsive positioning */
+/* Toast responsive positioning - Enhanced for small screens */
 .p-toast {
-    width: 90vw;
-    max-width: 25rem;
+    width: 85vw !important;
+    max-width: 20rem !important;
+    margin: 0.5rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+/* Toast message container for better mobile handling */
+.p-toast .p-toast-message {
+    margin: 0.25rem 0 !important;
+    padding: 0.75rem !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+/* Toast icon sizing for mobile */
+.p-toast .p-toast-icon {
+    font-size: 1.125rem !important;
+    min-width: 1.5rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* Toast text styling for better readability */
+.p-toast .p-toast-message-content {
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Toast title styling */
+.p-toast .p-toast-summary {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Toast detail text styling */
+.p-toast .p-toast-detail {
+    font-size: 0.825rem !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Toast close button for mobile */
+.p-toast .p-toast-icon-close {
+    font-size: 1rem !important;
+    min-width: 1.25rem !important;
+    min-height: 1.25rem !important;
+    flex-shrink: 0 !important;
+}
+
+@media (min-width: 480px) {
+    .p-toast {
+        width: 80vw !important;
+        max-width: 22rem !important;
+    }
+
+    .p-toast .p-toast-message {
+        padding: 0.875rem !important;
+    }
+
+    .p-toast .p-toast-message-content {
+        font-size: 0.9rem !important;
+    }
+
+    .p-toast .p-toast-summary {
+        font-size: 0.95rem !important;
+    }
+
+    .p-toast .p-toast-detail {
+        font-size: 0.85rem !important;
+    }
 }
 
 @media (min-width: 768px) {
     .p-toast {
-        width: 25rem;
+        width: 25rem !important;
+        left: auto !important;
+        transform: none !important;
     }
+
+    .p-toast .p-toast-message {
+        padding: 1rem !important;
+    }
+
+    .p-toast .p-toast-message-content {
+        font-size: 0.925rem !important;
+    }
+
+    .p-toast .p-toast-summary {
+        font-size: 1rem !important;
+    }
+
+    .p-toast .p-toast-detail {
+        font-size: 0.875rem !important;
+    }
+}
+
+/* Additional mobile toast improvements */
+.p-toast.p-toast-top-right {
+    top: 1rem !important;
+    right: 1rem !important;
+}
+
+.p-toast.p-toast-top-left {
+    top: 1rem !important;
+    left: 1rem !important;
+}
+
+.p-toast.p-toast-top-center {
+    top: 1rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+}
+
+/* Ensure toast doesn't overlap with mobile navigation */
+@media (max-width: 767px) {
+    .p-toast.p-toast-top-right {
+        top: 0.5rem !important;
+        right: 0.5rem !important;
+    }
+
+    .p-toast.p-toast-top-left {
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+    }
+
+    .p-toast.p-toast-top-center {
+        top: 0.5rem !important;
+    }
+}
+
+/* Long text handling in toast */
+.p-toast .p-toast-message .p-toast-message-content {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+    min-height: auto !important;
+}
+
+.p-toast .p-toast-message .p-toast-message-content .p-toast-text {
+    flex: 1 !important;
+    min-width: 0 !important; /* Allow text to shrink */
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* Ensure multiple toasts stack properly */
+.p-toast .p-toast-message-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
 }
 
 /* Utility classes for responsive design */

@@ -64,21 +64,49 @@ class PrayerRecordController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $record = PrayerRecord::updateOrCreate(
-            [
-                'user_id' => $request->user_id,
-                'prayer_type' => $request->prayer_type,
-                'date' => $request->date,
-            ],
-            [
+        // Check for existing record
+        $existingRecord = PrayerRecord::where([
+            'user_id' => $request->user_id,
+            'prayer_type' => $request->prayer_type,
+            'date' => $request->date,
+        ])->first();
+
+        if ($existingRecord) {
+            // If record exists with the same status, return a specific message
+            if ($existingRecord->status === $request->status) {
+                return response()->json([
+                    'message' => 'Kehadiran untuk sholat ini sudah dicatat dengan status yang sama.',
+                    'data' => $existingRecord->load('user'),
+                    'duplicate' => true,
+                ], 200);
+            }
+
+            // Update existing record with new status
+            $existingRecord->update([
                 'status' => $request->status,
                 'notes' => $request->notes,
-            ]
-        );
+            ]);
+
+            return response()->json([
+                'message' => 'Status kehadiran berhasil diperbarui.',
+                'data' => $existingRecord->load('user'),
+                'updated' => true,
+            ], 200);
+        }
+
+        // Create new record
+        $record = PrayerRecord::create([
+            'user_id' => $request->user_id,
+            'prayer_type' => $request->prayer_type,
+            'date' => $request->date,
+            'status' => $request->status,
+            'notes' => $request->notes,
+        ]);
 
         return response()->json([
-            'message' => 'Prayer record saved successfully',
+            'message' => 'Kehadiran berhasil dicatat.',
             'data' => $record->load('user'),
+            'created' => true,
         ], 201);
     }
 
@@ -234,5 +262,98 @@ class PrayerRecordController extends Controller
         });
 
         return response()->json($recap);
+    }
+
+    /**
+     * Get daily recap with rombel filter (Admin only)
+     */
+    public function dailyRecap(Request $request)
+    {
+        // Only admin can view daily recap
+        if (!$request->user()->isAdmin()) {
+            return response()->json([
+                'message' => 'Unauthorized. Only admin can view daily recap.',
+            ], 403);
+        }
+
+        $request->validate([
+            'date' => 'required|date',
+            'rombongan_belajar_id' => 'nullable|exists:rombongan_belajar,id',
+        ]);
+
+        $date = $request->date;
+        $rombonganBelajarId = $request->rombongan_belajar_id;
+
+        // Get users with their prayer records for the specified date
+        $usersQuery = \App\Models\User::with([
+            'rombonganBelajar',
+            'prayerRecords' => function ($query) use ($date) {
+                $query->where('date', $date);
+            }
+        ]);
+
+        // Filter by rombel if specified
+        if ($rombonganBelajarId) {
+            $usersQuery->where('rombongan_belajar_id', $rombonganBelajarId);
+        }
+
+        $users = $usersQuery->get();
+
+        // Transform data for daily recap view
+        $dailyRecap = $users->map(function ($user) use ($date) {
+            $dhuhaRecord = $user->prayerRecords->firstWhere('prayer_type', 'dhuha');
+            $dhuhurRecord = $user->prayerRecords->firstWhere('prayer_type', 'dhuhur');
+
+            return [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'rombel' => $user->rombonganBelajar->nama_rombel ?? 'Tidak ada rombel',
+                'dhuha_status' => $dhuhaRecord->status ?? null,
+                'dhuha_notes' => $dhuhaRecord->notes ?? null,
+                'dhuha_record_id' => $dhuhaRecord->id ?? null,
+                'dhuhur_status' => $dhuhurRecord->status ?? null,
+                'dhuhur_notes' => $dhuhurRecord->notes ?? null,
+                'dhuhur_record_id' => $dhuhurRecord->id ?? null,
+            ];
+        });
+
+        return response()->json($dailyRecap);
+    }
+
+    /**
+     * Delete specific prayer record by user, date, and type (Admin only)
+     */
+    public function deleteByUserDateType(Request $request)
+    {
+        // Only admin can delete records
+        if (!$request->user()->isAdmin()) {
+            return response()->json([
+                'message' => 'Unauthorized. Only admin can delete records.',
+            ], 403);
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+            'prayer_type' => 'required|in:dhuhur,dhuha',
+        ]);
+
+        $record = PrayerRecord::where([
+            'user_id' => $request->user_id,
+            'date' => $request->date,
+            'prayer_type' => $request->prayer_type,
+        ])->first();
+
+        if (!$record) {
+            return response()->json([
+                'message' => 'Record not found',
+            ], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'message' => 'Data rekap sholat berhasil dihapus',
+        ]);
     }
 }

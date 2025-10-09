@@ -49,7 +49,7 @@ class PublicUserController extends Controller
         $presentPrayers = 0;
         $statistics = [];
 
-        $prayerTypes = ['dhuhur', 'dhuha', 'ashar', 'maghrib', 'isya', 'subuh'];
+        $prayerTypes = ['dhuhur', 'dhuha'];
 
         foreach ($prayerTypes as $type) {
             $typeRecords = $prayerRecords->get($type, collect());
