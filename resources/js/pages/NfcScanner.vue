@@ -190,6 +190,8 @@ const startScan = () => {
     life: 3000 
   });
 
+  readNFC()
+
   // Simulate NFC scanning
   // scanInterval = setInterval(() => {
   //   // Randomly detect a card (in real implementation, this would be triggered by NFC events)
