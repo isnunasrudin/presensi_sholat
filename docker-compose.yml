@@ -8,6 +8,8 @@ services:
             - .:/var/www/html
         depends_on:
             - db
+        environment:
+            SSL_MODE: "mixed"
 
     db:
         image: mariadb:10.11
