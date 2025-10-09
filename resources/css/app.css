@@ -1,0 +1,901 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Mobile-first base styles */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Natural green gradient background */
+    background: #396349;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated background overlay for depth */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(52, 211, 153, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(5, 150, 105, 0.25) 0%, transparent 50%);
+    animation: floatingGradient 15s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes floatingGradient {
+    0%, 100% {
+        opacity: 0.5;
+        transform: scale(1) translate(0, 0);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1) translate(20px, -20px);
+    }
+}
+
+/* Ensure content is above background */
+#app {
+    position: relative;
+    z-index: 1;
+}
+
+/* Enhanced liquid glass effect for cards */
+.card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0.15) 100%
+    );
+    border-radius: 20px;
+    opacity: 0.7;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Shimmer effect for cards */
+.card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 45%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 55%,
+        transparent 100%
+    );
+    transform: rotate(45deg);
+    animation: shimmer 6s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+/* Enhanced liquid glass effect for buttons */
+.btn-glass {
+    position: relative;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.btn-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow:
+        0 6px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+.btn-glass:hover::before {
+    opacity: 1;
+}
+
+.btn-glass:active {
+    transform: translateY(-1px);
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Enhanced liquid glass effect for inputs */
+.input-glass {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    color: white;
+    padding: 0.875rem 1.125rem;
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-glass::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.input-glass:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.15),
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.input-glass:hover {
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+/* Responsive images and media */
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Form elements responsive behavior */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    max-width: 100%;
+}
+
+/* Prevent text overflow */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    overflow-wrap: break-word;
+}
+
+/* Glass-themed scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* PrimeVue responsive overrides */
+.p-component {
+    font-size: 0.875rem;
+}
+
+.p-button {
+    padding: 0.5rem 1rem;
+}
+
+.p-inputtext,
+.p-dropdown,
+.p-calendar {
+    width: 100%;
+}
+/* ===================================
+   PRIMEVUE LIQUID GLASS OVERRIDES
+   =================================== */
+
+/* Liquid Glass Buttons */
+.p-button {
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.p-button:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 6px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.1) !important;
+}
+
+.p-button:not(:disabled):active {
+    transform: translateY(-1px) !important;
+}
+
+/* Button variants with natural green tones */
+.p-button-success {
+    background: rgba(34, 197, 94, 0.3) !important;
+    border-color: rgba(34, 197, 94, 0.5) !important;
+}
+
+.p-button-success:not(:disabled):hover {
+    background: rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 
+        0 6px 24px rgba(34, 197, 94, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+.p-button-danger {
+    background: rgba(239, 68, 68, 0.3) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.p-button-danger:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.4) !important;
+}
+
+.p-button-info {
+    background: rgba(59, 130, 246, 0.3) !important;
+    border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+.p-button-warning {
+    background: rgba(245, 158, 11, 0.3) !important;
+    border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.p-button-secondary {
+    background: rgba(107, 114, 128, 0.3) !important;
+    border-color: rgba(107, 114, 128, 0.5) !important;
+}
+
+/* Text buttons */
+.p-button-text {
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+.p-button-text:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Outlined buttons */
+.p-button-outlined {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid Glass Inputs */
+.p-inputtext,
+.p-dropdown .p-dropdown-label,
+.p-calendar input,
+.p-password input {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    box-shadow: 
+        inset 0 1px 3px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.p-inputtext::placeholder,
+.p-dropdown .p-dropdown-label.p-placeholder {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-dropdown:not(.p-disabled).p-focus,
+.p-calendar:not(.p-disabled) .p-inputtext:focus {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    box-shadow: 
+        0 0 0 3px rgba(255, 255, 255, 0.15),
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-1px);
+}
+
+.p-inputtext:enabled:hover,
+.p-dropdown:not(.p-disabled):hover {
+    border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Liquid Glass Cards */
+.p-card {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 20px !important;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.p-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 1px 3px rgba(0, 0, 0, 0.12) !important;
+}
+
+.p-card .p-card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+.p-card .p-card-title,
+.p-card .p-card-subtitle {
+    color: white !important;
+}
+
+.p-card .p-card-content {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Liquid Glass DataTable */
+.p-datatable {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+    background: rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(10px) !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: white !important;
+    transition: all 0.2s ease !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Liquid Glass DataView */
+.p-dataview {
+    background: transparent !important;
+    color: white !important;
+}
+
+.p-dataview .p-dataview-content {
+    background: transparent !important;
+}
+
+/* Liquid Glass Dialog */
+.p-dialog {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+}
+
+.p-dialog .p-dialog-header {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 20px 20px 0 0 !important;
+}
+
+.p-dialog .p-dialog-title {
+    color: white !important;
+}
+
+.p-dialog .p-dialog-header-icon {
+    color: white !important;
+}
+
+.p-dialog .p-dialog-header-icon:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.p-dialog .p-dialog-content {
+    background: transparent !important;
+    color: white !important;
+}
+
+.p-dialog .p-dialog-footer {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0 0 20px 20px !important;
+}
+
+/* Liquid Glass Dropdown */
+.p-dropdown {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 12px !important;
+}
+
+.p-dropdown-panel {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+    color: white !important;
+    transition: all 0.2s ease !important;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item:not(.p-highlight):hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+    background: rgba(16, 185, 129, 0.3) !important;
+    color: white !important;
+}
+
+.p-dropdown .p-dropdown-trigger {
+    color: white !important;
+}
+
+/* Liquid Glass Calendar */
+.p-datepicker {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    color: white !important;
+}
+
+.p-datepicker .p-datepicker-header {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.p-datepicker .p-datepicker-header .p-datepicker-title {
+    color: white !important;
+}
+
+.p-datepicker .p-datepicker-header .p-datepicker-prev,
+.p-datepicker .p-datepicker-header .p-datepicker-next {
+    color: white !important;
+}
+
+.p-datepicker .p-datepicker-header .p-datepicker-prev:hover,
+.p-datepicker .p-datepicker-header .p-datepicker-next:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.p-datepicker table th {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.p-datepicker table td > span {
+    color: white !important;
+}
+
+.p-datepicker table td > span:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.p-datepicker table td.p-datepicker-today > span {
+    background: rgba(16, 185, 129, 0.3) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    color: white !important;
+}
+
+.p-datepicker table td > span.p-highlight {
+    background: rgba(16, 185, 129, 0.4) !important;
+    color: white !important;
+}
+
+/* Liquid Glass Paginator */
+.p-paginator {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background: rgba(16, 185, 129, 0.4) !important;
+}
+
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last {
+    color: white !important;
+}
+
+/* Liquid Glass Toast */
+.p-toast .p-toast-message {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.p-toast .p-toast-message .p-toast-message-content {
+    color: white !important;
+}
+
+.p-toast .p-toast-message.p-toast-message-success {
+    background: rgba(34, 197, 94, 0.25) !important;
+    border-color: rgba(34, 197, 94, 0.5) !important;
+}
+
+.p-toast .p-toast-message.p-toast-message-error {
+    background: rgba(239, 68, 68, 0.25) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.p-toast .p-toast-message.p-toast-message-warn {
+    background: rgba(245, 158, 11, 0.25) !important;
+    border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.p-toast .p-toast-message.p-toast-message-info {
+    background: rgba(59, 130, 246, 0.25) !important;
+    border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+.p-toast .p-toast-message .p-toast-icon-close {
+    color: white !important;
+}
+
+.p-toast .p-toast-message .p-toast-icon-close:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Liquid Glass Textarea */
+.p-inputtextarea {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    resize: vertical !important;
+}
+
+.p-inputtextarea::placeholder {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.p-inputtextarea:enabled:focus {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    box-shadow: 
+        0 0 0 3px rgba(255, 255, 255, 0.15),
+        0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Liquid Glass Confirm Dialog */
+.p-confirm-dialog {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 20px !important;
+}
+
+.p-confirm-dialog .p-dialog-content {
+    color: white !important;
+}
+
+.p-confirm-dialog .p-confirm-dialog-message {
+    color: white !important;
+}
+
+/* Password field */
+.p-password {
+    width: 100% !important;
+}
+
+.p-password-panel {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.p-password-panel .p-password-meter {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Labels and text in forms */
+label {
+    color: white !important;
+}
+
+.p-error {
+    color: #fca5a5 !important;
+}
+
+/* Ensure proper text color for all elements */
+h1, h2, h3, h4, h5, h6, p, span, div {
+    color: inherit;
+}
+
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .p-component {
+        font-size: 1rem;
+    }
+
+    .p-button {
+        padding: 0.625rem 1.25rem;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+/* Dialog responsive behavior */
+.p-dialog {
+    max-width: 95vw !important;
+    margin: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .p-dialog {
+        margin: 2rem;
+    }
+}
+
+/* Card responsive spacing */
+.p-card .p-card-body {
+    padding: 1rem;
+}
+
+.p-card .p-card-content {
+    padding: 0;
+}
+
+@media (min-width: 768px) {
+    .p-card .p-card-body {
+        padding: 1.25rem;
+    }
+}
+
+/* DataTable responsive */
+.p-datatable-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Toast responsive positioning */
+.p-toast {
+    width: 90vw;
+    max-width: 25rem;
+}
+
+@media (min-width: 768px) {
+    .p-toast {
+        width: 25rem;
+    }
+}
+
+/* Utility classes for responsive design */
+.mobile-only {
+    display: block;
+}
+
+.tablet-up {
+    display: none;
+}
+
+.desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none;
+    }
+
+    .tablet-up {
+        display: block;
+    }
+}
+
+@media (min-width: 1024px) {
+    .desktop-only {
+        display: block;
+    }
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .p-button {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+}
