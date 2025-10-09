@@ -217,10 +217,10 @@ const stopScan = () => {
 const detectCard = () => {
   // In a real implementation, this would be triggered by NFC events
   // and would contain the actual URL from the NFC tag
-  // For now, we'll use mock data
+  // For now, we'll use mock data with public URLs
   const mockUrls = [
-    'https://prayer-app.example.com/users/1',
-    'https://prayer-app.example.com/users/2'
+    `${window.location.origin}/u/1`,
+    `${window.location.origin}/u/2`
   ];
   
   const randomUrl = mockUrls[Math.floor(Math.random() * mockUrls.length)];
@@ -230,7 +230,7 @@ const detectCard = () => {
     timestamp: new Date()
   };
   
-  // Parse user ID from URL (in real implementation)
+  // Parse user ID from public URL (in real implementation)
   const userId = randomUrl.split('/').pop();
   
   // Fetch user info
@@ -266,7 +266,7 @@ const readNFC = async () => {
           timestamp: new Date()
         };
         
-        // Parse user ID from URL
+        // Parse user ID from public URL
         const userId = url.split('/').pop();
         
         // Fetch user info

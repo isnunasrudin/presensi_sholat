@@ -127,8 +127,8 @@ const fetchUsers = async () => {
 // Handle user selection
 const onUserSelect = () => {
   if (selectedUser.value) {
-    // Generate URL for the selected user
-    userUrl.value = `${window.location.origin}/users/${selectedUser.value}`;
+    // Generate public URL for the selected user
+    userUrl.value = `${window.location.origin}/u/${selectedUser.value}`;
   } else {
     userUrl.value = '';
   }
