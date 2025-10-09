@@ -17,4 +17,23 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
+    css: {
+        postcss: {
+            plugins: [
+                // Add any additional PostCSS plugins if needed
+            ],
+        },
+        devSourcemap: true,
+    },
+    build: {
+        cssCodeSplit: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'primevue': ['primevue'],
+                    'vue': ['vue', 'vue-router', 'pinia'],
+                },
+            },
+        },
+    },
 });
