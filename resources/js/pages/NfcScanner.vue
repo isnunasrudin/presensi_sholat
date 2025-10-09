@@ -191,12 +191,12 @@ const startScan = () => {
   });
 
   // Simulate NFC scanning
-  scanInterval = setInterval(() => {
-    // Randomly detect a card (in real implementation, this would be triggered by NFC events)
-    if (Math.random() > 0.7 && !detectedCard.value) {
-      detectCard();
-    }
-  }, 3000);
+  // scanInterval = setInterval(() => {
+  //   // Randomly detect a card (in real implementation, this would be triggered by NFC events)
+  //   if (Math.random() > 0.7 && !detectedCard.value) {
+  //     detectCard();
+  //   }
+  // }, 3000);
 };
 
 // Stop scanning
@@ -238,7 +238,6 @@ const detectCard = () => {
 };
 
 // In a real implementation, you would use the NFC API:
-/*
 const readNFC = async () => {
   if (!('NDEFReader' in window)) {
     toast.add({
@@ -282,7 +281,6 @@ const readNFC = async () => {
     });
   }
 };
-*/
 
 // Fetch user info from URL
 const fetchUserInfo = async (userId) => {
