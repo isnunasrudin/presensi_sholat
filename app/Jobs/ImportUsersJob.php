@@ -50,35 +50,9 @@ class ImportUsersJob implements ShouldQueue
 
             Log::info("Starting user import job: {$this->userImport->id}");
 
-            // Create import instance with progress tracking
-            $import = new class extends UsersImportOptimized {
-                protected $userImport;
-
-                public function __construct($userImport)
-                {
-                    parent::__construct();
-                    $this->userImport = $userImport;
-                }
-
-                public function chunk(array $rows): void
-                {
-                    parent::chunk($rows);
-
-                    // Update progress
-                    $totalProcessed = $this->importedCount + $this->skippedCount;
-                    $progress = min(round(($totalProcessed / max($this->userImport->total_rows, 1)) * 100, 2), 100);
-
-                    $this->userImport->update([
-                        'progress' => $progress,
-                        'imported_count' => $this->importedCount,
-                        'skipped_count' => $this->skippedCount,
-                        'errors' => $this->errors,
-                    ]);
-
-                    // Log progress
-                    Log::info("Import progress: {$progress}% ({$this->importedCount} imported, {$this->skippedCount} skipped)");
-                }
-            };
+            // Create import instance
+            $import = new UsersImportOptimized();
+            $import->setUserImport($this->userImport);
 
             // Get file path
             $fullPath = Storage::disk('local')->path($this->filePath);

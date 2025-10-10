@@ -307,7 +307,7 @@ class PrayerRecordController extends Controller
             return [
                 'user_id' => $user->id,
                 'name' => $user->name,
-                'rombel' => $user->rombonganBelajar->nama_rombel ?? 'Tidak ada rombel',
+                'rombel' => $user->rombonganBelajar ? ($user->rombonganBelajar->tingkat . '-' . $user->rombonganBelajar->nama_rombel) : 'Tidak ada rombel',
                 'dhuha_status' => $dhuhaRecord->status ?? null,
                 'dhuha_notes' => $dhuhaRecord->notes ?? null,
                 'dhuha_record_id' => $dhuhaRecord->id ?? null,

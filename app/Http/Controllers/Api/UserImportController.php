@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Imports\UsersImportOptimized;
 use App\Models\RombonganBelajar;
+use App\Models\UserImport;
+use App\Jobs\ImportUsersJob;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 
 class UserImportController extends Controller
 {
@@ -25,7 +28,8 @@ class UserImportController extends Controller
         }
 
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', // Max 10MB
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:20480', // Max 20MB
+            'use_queue' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -38,23 +42,7 @@ class UserImportController extends Controller
 
         try {
             $file = $request->file('file');
-
-            // Import the file
-            $import = new UsersImportOptimized();
-            Excel::import($import, $file);
-
-            // Get import results from the import class
-            $results = $import->getResults();
-
-            return response()->json([
-                'message' => 'Import users berhasil',
-                'success' => true,
-                'data' => [
-                    'imported_count' => $results['imported_count'] ?? 0,
-                    'skipped_count' => $results['skipped_count'] ?? 0,
-                    'errors' => $results['errors'] ?? [],
-                ],
-            ]);
+            return $this->handleQueueImport($file, $request->user());
 
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             return response()->json([
@@ -71,6 +59,82 @@ class UserImportController extends Controller
         }
     }
 
+  
+    /**
+     * Handle queue import (asynchronous)
+     */
+    private function handleQueueImport($file, $user)
+    {
+        // Store file temporarily
+        $fileName = 'user_import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $filePath = $file->storeAs('imports', $fileName, 'local');
+
+        // Count total rows for progress tracking
+        $totalRows = $this->countFileRows($file);
+
+        // Create import record
+        $userImport = UserImport::create([
+            'admin_user_id' => $user->id,
+            'file_name' => $file->getClientOriginalName(),
+            'file_path' => $filePath,
+            'total_rows' => $totalRows,
+            'status' => 'pending',
+        ]);
+
+        // Dispatch job
+        ImportUsersJob::dispatch($userImport, $filePath, $user->id);
+
+        return response()->json([
+            'message' => 'Import users dimulai (background)',
+            'success' => true,
+            'data' => [
+                'import_id' => $userImport->id,
+                'file_name' => $file->getClientOriginalName(),
+                'total_rows' => $totalRows,
+                'file_size' => round($file->getSize() / 1024 / 1024, 2) . ' MB',
+                'estimated_time' => $this->estimateTime($totalRows),
+                'status' => 'pending',
+                'message' => 'File sedang diproses di background. Anda dapat memantau progress menggunakan ID import: ' . $userImport->id,
+            ],
+        ]);
+    }
+
+    /**
+     * Count file rows (approximate)
+     */
+    private function countFileRows($file)
+    {
+        $filePath = $file->getRealPath();
+        $handle = fopen($filePath, 'r');
+        $count = 0;
+
+        while (!feof($handle)) {
+            if (fgets($handle) !== false) {
+                $count++;
+            }
+        }
+
+        fclose($handle);
+        return max(0, $count - 1); // Subtract header row
+    }
+
+    /**
+     * Estimate processing time
+     */
+    private function estimateTime($totalRows)
+    {
+        // Rough estimation: 100 records per second
+        $seconds = $totalRows / 100;
+
+        if ($seconds < 60) {
+            return round($seconds) . ' detik';
+        }
+
+        return round($seconds / 60, 1) . ' menit';
+    }
+
+  
+  
     /**
      * Download Excel template for user import.
      */

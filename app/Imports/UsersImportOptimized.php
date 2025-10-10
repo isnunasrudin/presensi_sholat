@@ -20,12 +20,21 @@ class UsersImportOptimized implements ToModel, WithHeadingRow, WithBatchInserts,
     private $startTime;
     private $rombelCache = [];
     private $emailCache = [];
+    private $userImport;
 
     public function __construct()
     {
         $this->startTime = microtime(true);
         // Pre-cache rombel data
         $this->preloadRombelCache();
+    }
+
+    /**
+     * Set user import for progress tracking
+     */
+    public function setUserImport($userImport)
+    {
+        $this->userImport = $userImport;
     }
 
     /**
@@ -87,6 +96,17 @@ class UsersImportOptimized implements ToModel, WithHeadingRow, WithBatchInserts,
             // Optimized email generation
             $email = $this->generateUniqueEmail($row['name'], $row['email'] ?? null);
 
+            // Normalize gender value
+            $gender = null;
+            if (!empty($row['gender'])) {
+                $genderValue = strtolower(trim($row['gender']));
+                if (in_array($genderValue, ['l', 'male', 'pria'])) {
+                    $gender = 'L';
+                } elseif (in_array($genderValue, ['p', 'female', 'wanita', 'perempuan'])) {
+                    $gender = 'P';
+                }
+            }
+
             // Create user with batch insert ready data
             return new User([
                 'name' => trim($row['name']),
@@ -94,7 +114,7 @@ class UsersImportOptimized implements ToModel, WithHeadingRow, WithBatchInserts,
                 'password' => Hash::make('password'),
                 'role' => $row['role'],
                 'nisn' => $row['nisn'] ? trim($row['nisn']) : null,
-                'gender' => $row['gender'] ?? null,
+                'gender' => $gender,
                 'rombongan_belajar_id' => $rombonganBelajarId,
                 'tahun_angkatan' => $row['tahun_angkatan'] ?? null,
                 'email_verified_at' => now(),
@@ -162,9 +182,24 @@ class UsersImportOptimized implements ToModel, WithHeadingRow, WithBatchInserts,
                 }
             });
 
-            // Log progress every chunk
-            $progress = round(($this->importedCount / 1000) * 100, 2);
-            \Log::info("Import progress: {$this->importedCount} users imported");
+            // Update progress if userImport is set
+            if ($this->userImport) {
+                $totalProcessed = $this->importedCount + $this->skippedCount;
+                $progress = min(round(($totalProcessed / max($this->userImport->total_rows, 1)) * 100, 2), 100);
+
+                $this->userImport->update([
+                    'progress' => $progress,
+                    'imported_count' => $this->importedCount,
+                    'skipped_count' => $this->skippedCount,
+                    'errors' => $this->errors,
+                ]);
+
+                // Log progress
+                \Log::info("Import progress: {$progress}% ({$this->importedCount} imported, {$this->skippedCount} skipped)");
+            } else {
+                // Fallback logging
+                \Log::info("Import progress: {$this->importedCount} users imported");
+            }
 
         } catch (\Exception $e) {
             $this->skippedCount += count($rows);

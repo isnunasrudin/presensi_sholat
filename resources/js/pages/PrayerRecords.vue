@@ -23,13 +23,13 @@
                         />
                     </div>
                     <div v-if="authStore.isAdmin" class="filter-group">
-                        <label>Rombel</label>
+                        <label>Kelas</label>
                         <Dropdown
                             v-model="filters.rombongan_belajar_id"
-                            :options="[{ id: null, nama_rombel: 'Semua Rombel' }, ...rombels]"
-                            optionLabel="nama_rombel"
+                            :options="[{ id: null, nama_kelas: 'Semua Kelas' }, ...rombels]"
+                            optionLabel="nama_kelas"
                             optionValue="id"
-                            placeholder="Semua Rombel"
+                            placeholder="Semua Kelas"
                             @change="fetchDailyRecap"
                             filter
                         />
@@ -65,7 +65,7 @@
                         </template>
                     </Column>
 
-                    <Column field="rombel" header="Rombel" sortable>
+                    <Column field="rombel" header="Kelas" sortable>
                         <template #body="slotProps">
                             <span class="rombel-badge">{{ slotProps.data.rombel }}</span>
                         </template>
@@ -299,7 +299,13 @@ const fetchRombels = async () => {
 
     try {
         const response = await api.get('/rombongan-belajar');
-        rombels.value = response.data.data || response.data;
+        const data = response.data.data || response.data;
+
+        // Calculate nama_kelas for each rombel
+        rombels.value = data.map(rombel => ({
+            ...rombel,
+            nama_kelas: `${rombel.tingkat}-${rombel.nama_rombel}`
+        }));
     } catch (error) {
         console.error('Failed to fetch rombels:', error);
     }

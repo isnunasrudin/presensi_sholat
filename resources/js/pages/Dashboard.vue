@@ -443,11 +443,11 @@ const fetchAdminStats = async () => {
 
         // Get users count
         const usersResponse = await api.get('/users');
-        const totalUsers = (usersResponse.data.data || usersResponse.data).length;
+        const totalUsers = usersResponse.data.total || (usersResponse.data.data || usersResponse.data).length;
 
         // Get rombels count
         const rombelsResponse = await api.get('/rombongan-belajar');
-        const totalRombels = (rombelsResponse.data.data || rombelsResponse.data).length;
+        const totalRombels = rombelsResponse.data.total || (rombelsResponse.data.data || rombelsResponse.data).length;
 
         adminStats.value = {
             ...prayerResponse.data,

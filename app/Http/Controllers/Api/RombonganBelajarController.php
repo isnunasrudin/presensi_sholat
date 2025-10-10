@@ -20,7 +20,18 @@ class RombonganBelajarController extends Controller
             ], 403);
         }
 
-        $rombonganBelajar = RombonganBelajar::withCount('users')->orderBy('created_at', 'desc')->paginate(15);
+        $rombonganBelajar = RombonganBelajar::withCount('users')
+            ->orderByRaw("CASE tingkat
+                WHEN 'VII' THEN 1
+                WHEN 'VIII' THEN 2
+                WHEN 'IX' THEN 3
+                WHEN 'X' THEN 4
+                WHEN 'XI' THEN 5
+                WHEN 'XII' THEN 6
+                ELSE 7
+            END")
+            ->orderBy('nama_rombel', 'asc')
+            ->paginate(100);
 
         return response()->json($rombonganBelajar);
     }

@@ -47,7 +47,7 @@
                                     <i class="pi pi-cloud-upload"></i>
                                     <h3>Drag & Drop File</h3>
                                     <p>atau klik untuk memilih file</p>
-                                    <small class="file-info">Mendukung: Excel (.xlsx, .xls) atau CSV (.csv) - Max 10MB</small>
+                                    <small class="file-info">Mendukung: Excel (.xlsx, .xls) atau CSV (.csv) - Max 20MB</small>
                                 </div>
 
                                 <div v-else class="selected-file">
@@ -207,48 +207,22 @@
                 </template>
             </Card>
 
-            <!-- Import Results Card -->
-            <Card v-if="importResults" class="results-card">
+            <!-- Import Success Message -->
+            <Card v-if="importSuccess" class="success-card">
                 <template #title>
                     <div class="card-title">
                         <i class="pi pi-check-circle"></i>
-                        Hasil Import
+                        Import Berhasil
                     </div>
                 </template>
                 <template #content>
-                    <div class="results-content">
-                        <div class="results-summary">
-                            <div class="result-item success">
-                                <i class="pi pi-check"></i>
-                                <div>
-                                    <strong>{{ importResults.imported_count }}</strong>
-                                    <span>Berhasil diimport</span>
-                                </div>
-                            </div>
-                            <div class="result-item skipped">
-                                <i class="pi pi-exclamation-triangle"></i>
-                                <div>
-                                    <strong>{{ importResults.skipped_count }}</strong>
-                                    <span>Dilewati/Error</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="importResults.errors && importResults.errors.length > 0" class="errors-section">
-                            <h4>Detail Error</h4>
-                            <div class="errors-list">
-                                <div
-                                    v-for="(error, index) in importResults.errors.slice(0, 10)"
-                                    :key="index"
-                                    class="error-item">
-                                    <span class="error-row">Baris {{ error.row }}:</span>
-                                    <span class="error-message">{{ Object.values(error.errors).join(', ') }}</span>
-                                </div>
-                                <div
-                                    v-if="importResults.errors.length > 10"
-                                    class="more-errors">
-                                    ... dan {{ importResults.errors.length - 10 }} error lainnya
-                                </div>
+                    <div class="success-content">
+                        <div class="success-message">
+                            <i class="pi pi-check-circle"></i>
+                            <div>
+                                <h3>File sedang diproses</h3>
+                                <p>{{ importSuccess.file_name }} telah ditambahkan ke antrian dan akan diproses secara otomatis.</p>
+                                <p><strong>Estimasi waktu: {{ importSuccess.estimated_time }}</strong></p>
                             </div>
                         </div>
                     </div>
@@ -281,7 +255,7 @@ const downloading = ref(false)
 const loadingRombel = ref(false)
 const isDragOver = ref(false)
 const availableRombel = ref([])
-const importResults = ref(null)
+const importSuccess = ref(null)
 
 // Methods
 const handleFileSelect = (event) => {
@@ -318,24 +292,24 @@ const processFile = (file) => {
         return
     }
 
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (20MB)
+    if (file.size > 20 * 1024 * 1024) {
         toast.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Ukuran file terlalu besar. Maksimal 10MB',
+            detail: 'Ukuran file terlalu besar. Maksimal 20MB',
             life: 5000
         })
         return
     }
 
     selectedFile.value = file
-    importResults.value = null // Clear previous results
+    importSuccess.value = null // Clear previous success message
 }
 
 const removeFile = () => {
     selectedFile.value = null
-    importResults.value = null
+    importSuccess.value = null
     if (document.querySelector('.file-input')) {
         document.querySelector('.file-input').value = ''
     }
@@ -373,16 +347,16 @@ const importUsers = async () => {
         })
 
         if (response.data.success) {
-            importResults.value = response.data.data
+            importSuccess.value = response.data.data
 
             toast.add({
                 severity: 'success',
                 summary: 'Import Berhasil',
-                detail: `${response.data.data.imported_count} users berhasil diimport`,
+                detail: 'File telah ditambahkan ke antrian dan akan diproses secara otomatis',
                 life: 5000
             })
 
-            // Clear file after successful import
+            // Clear file after successful upload
             selectedFile.value = null
 
             // Trigger refresh in parent components if needed
@@ -597,7 +571,7 @@ onMounted(() => {
 .template-card,
 .instructions-card,
 .rombel-card,
-.results-card {
+.success-card {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -615,7 +589,7 @@ onMounted(() => {
 .template-card::before,
 .instructions-card::before,
 .rombel-card::before,
-.results-card::before {
+.success-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -638,7 +612,7 @@ onMounted(() => {
 .template-card:hover,
 .instructions-card:hover,
 .rombel-card:hover,
-.results-card:hover {
+.success-card:hover {
     transform: translateY(-4px);
     box-shadow:
         0 12px 40px rgba(0, 0, 0, 0.2),
@@ -650,7 +624,7 @@ onMounted(() => {
 .template-card:hover::before,
 .instructions-card:hover::before,
 .rombel-card:hover::before,
-.results-card:hover::before {
+.success-card:hover::before {
     opacity: 1;
 }
 
@@ -948,104 +922,49 @@ onMounted(() => {
     margin: 0;
 }
 
-/* Results */
-.results-summary {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.result-item {
+/* Success Content */
+.success-content {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.result-item.success {
-    background: rgba(16, 185, 129, 0.2);
-    border: 1px solid rgba(16, 185, 129, 0.4);
-}
-
-.result-item.success i {
-    color: #10b981;
-    font-size: 1.25rem;
-}
-
-.result-item.skipped {
-    background: rgba(251, 191, 36, 0.2);
-    border: 1px solid rgba(251, 191, 36, 0.4);
-}
-
-.result-item.skipped i {
-    color: #fbbf24;
-    font-size: 1.25rem;
-}
-
-.result-item strong {
-    font-size: 1.5rem;
-    font-weight: 700;
+.success-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
     color: white;
-    display: block;
+}
+
+.success-message i {
+    font-size: 2rem;
+    color: rgba(16, 185, 129, 0.9);
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.success-message h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.result-item span {
+.success-message p {
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 0.25rem 0;
+    line-height: 1.4;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.errors-section h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: white;
-    margin: 0 0 1rem 0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+.success-message p:last-child {
+    margin-bottom: 0;
 }
 
-.errors-list {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.error-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.error-item:last-child {
-    border-bottom: none;
-}
-
-.error-row {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgba(251, 191, 36, 0.9);
-}
-
-.error-message {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.more-errors {
-    text-align: center;
-    padding: 0.75rem;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-style: italic;
-}
 
 /* Loading Overlay */
 .loading-overlay {
@@ -1128,7 +1047,7 @@ onMounted(() => {
         grid-column: 1 / -1;
     }
 
-    .results-card {
+    .success-card {
         grid-column: 1 / -1;
     }
 }

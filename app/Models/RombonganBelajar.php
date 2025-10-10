@@ -21,4 +21,12 @@ class RombonganBelajar extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    /**
+     * Get the full class name in format "X-A", "XII-B", etc.
+     */
+    public function getNamaKelasAttribute()
+    {
+        return ($this->tingkat ? $this->tingkat : '') . ($this->nama_rombel ? '-' . $this->nama_rombel : '');
+    }
 }
