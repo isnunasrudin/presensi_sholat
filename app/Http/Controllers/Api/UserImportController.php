@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Imports\UsersImportOptimized;
 use App\Models\RombonganBelajar;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Response;
 
 class UserImportController extends Controller
 {
     /**
-     * Import users from CSV file.
+     * Import users from Excel/CSV file.
      */
     public function import(Request $request)
     {
@@ -20,192 +20,159 @@ class UserImportController extends Controller
         if (!$request->user()->isAdmin()) {
             return response()->json([
                 'message' => 'Unauthorized access',
+                'success' => false,
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:csv,txt|max:10240', // Max 10MB
-            'rombongan_belajar_id' => 'nullable|exists:rombongan_belajar,id',
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', // Max 10MB
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Validasi gagal',
+                'success' => false,
                 'errors' => $validator->errors(),
             ], 422);
         }
 
         try {
             $file = $request->file('file');
-            $rombonganBelajarId = $request->input('rombongan_belajar_id');
 
-            // Open and read CSV file
-            $handle = fopen($file->getRealPath(), 'r');
-            
-            // Skip header row
-            $header = fgetcsv($handle);
-            
-            // Validate header - support both old and new format
-            $requiredHeaders = ['name', 'email', 'phone', 'password', 'role', 'nisn'];
-            $optionalHeaders = ['gender', 'nama_rombel', 'tingkat', 'tahun_angkatan'];
-            $headerLower = array_map('strtolower', array_map('trim', $header));
-            
-            $missingHeaders = array_diff($requiredHeaders, $headerLower);
-            if (!empty($missingHeaders)) {
-                fclose($handle);
-                return response()->json([
-                    'message' => 'Invalid CSV format. Missing required columns: ' . implode(', ', $missingHeaders),
-                    'expected_headers' => $requiredHeaders,
-                    'optional_headers' => $optionalHeaders,
-                ], 422);
-            }
-            
-            // Check if rombel columns exist
-            $hasRombelColumns = in_array('nama_rombel', $headerLower) && 
-                               in_array('tingkat', $headerLower) && 
-                               in_array('tahun_angkatan', $headerLower);
+            // Import the file
+            $import = new UsersImportOptimized();
+            Excel::import($import, $file);
 
-            $importedCount = 0;
-            $skippedCount = 0;
-            $errors = [];
-            $rowNumber = 1; // Start from 1 (excluding header)
-
-            while (($row = fgetcsv($handle)) !== false) {
-                $rowNumber++;
-                
-                // Map CSV columns to array keys
-                $userData = array_combine($headerLower, array_map('trim', $row));
-                
-                // Validate row data
-                $rowValidator = Validator::make($userData, [
-                    'name' => 'required|string|max:255',
-                    'email' => 'required|email|unique:users,email',
-                    'phone' => 'nullable|string|max:20',
-                    'password' => 'required|string|min:6',
-                    'role' => 'required|in:admin,user',
-                    'nisn' => 'nullable|string|max:20',
-                    'gender' => 'nullable|in:male,female',
-                ]);
-
-                if ($rowValidator->fails()) {
-                    $skippedCount++;
-                    $errors[] = [
-                        'row' => $rowNumber,
-                        'data' => $userData,
-                        'errors' => $rowValidator->errors()->toArray(),
-                    ];
-                    continue;
-                }
-
-                // Determine rombongan_belajar_id
-                $finalRombonganId = $rombonganBelajarId;
-                
-                // If CSV has rombel columns and no manual rombongan_belajar_id is set
-                if ($hasRombelColumns && !$rombonganBelajarId) {
-                    $namaRombel = $userData['nama_rombel'] ?? null;
-                    $tingkat = $userData['tingkat'] ?? null;
-                    $tahunAngkatan = $userData['tahun_angkatan'] ?? null;
-                    
-                    // Only process if all rombel data is provided
-                    if ($namaRombel && $tingkat && $tahunAngkatan) {
-                        // Find or create rombongan belajar
-                        $rombongan = RombonganBelajar::firstOrCreate(
-                            [
-                                'nama_rombel' => $namaRombel,
-                                'tingkat' => $tingkat,
-                                'tahun_angkatan' => $tahunAngkatan,
-                            ]
-                        );
-                        $finalRombonganId = $rombongan->id;
-                    }
-                }
-
-                // Create user
-                try {
-                    User::create([
-                        'name' => $userData['name'],
-                        'email' => $userData['email'],
-                        'phone' => $userData['phone'] ?: null,
-                        'password' => Hash::make($userData['password']),
-                        'role' => $userData['role'],
-                        'nisn' => $userData['nisn'] ?: null,
-                        'gender' => $userData['gender'] ?? null,
-                        'rombongan_belajar_id' => $finalRombonganId,
-                    ]);
-                    $importedCount++;
-                } catch (\Exception $e) {
-                    $skippedCount++;
-                    $errors[] = [
-                        'row' => $rowNumber,
-                        'data' => $userData,
-                        'errors' => ['database' => [$e->getMessage()]],
-                    ];
-                }
-            }
-
-            fclose($handle);
+            // Get import results from the import class
+            $results = $import->getResults();
 
             return response()->json([
-                'message' => "Import completed. {$importedCount} users imported, {$skippedCount} skipped.",
-                'imported_count' => $importedCount,
-                'skipped_count' => $skippedCount,
-                'errors' => $errors,
+                'message' => 'Import users berhasil',
+                'success' => true,
+                'data' => [
+                    'imported_count' => $results['imported_count'] ?? 0,
+                    'skipped_count' => $results['skipped_count'] ?? 0,
+                    'errors' => $results['errors'] ?? [],
+                ],
             ]);
 
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi data gagal',
+                'success' => false,
+                'errors' => $e->failures(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to process file',
+                'message' => 'Gagal memproses file',
+                'success' => false,
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Download CSV template.
+     * Download Excel template for user import.
      */
     public function downloadTemplate()
     {
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="user_import_template.csv"',
+            'Content-Disposition' => 'attachment; filename="template_import_users.csv"',
         ];
 
-        $columns = ['name', 'email', 'phone', 'password', 'role', 'nisn', 'gender', 'nama_rombel', 'tingkat', 'tahun_angkatan'];
-        
-        $callback = function() use ($columns) {
+        $callback = function() {
             $file = fopen('php://output', 'w');
+
+            // UTF-8 BOM for proper Excel compatibility
+            fwrite($file, "\xEF\xBB\xBF");
+
+            // Header - Required fields marked with *
+            $columns = [
+                'name*', // Required
+                'role*', // Required (admin/user)
+                'email', // Optional - will be generated if empty
+                'nisn', // Optional
+                'gender', // Optional (L/P)
+                'tahun_angkatan*', // Required for rombel creation
+                'nama_rombel*', // Required for rombel creation
+                'tingkat*', // Required for rombel creation
+            ];
             fputcsv($file, $columns);
-            
-            // Add example rows
+
+            // Example rows
             fputcsv($file, [
-                'John Doe',
-                'john.doe@example.com',
-                '081234567890',
-                'password123',
+                'Ahmad Rizki',
                 'user',
-                '1234567890',
-                'male',
-                'X-1',
-                'X',
-                '2024'
+                'ahmad.rizki@snesa.local', // Email optional, will be generated if empty
+                '1234567890', // NISN bisa kosong atau diisi
+                'L',
+                '2024', // Required
+                'XII-A', // Required - rombel akan dibuat otomatis jika belum ada
+                'XII', // Required
             ]);
-            
+
             fputcsv($file, [
-                'Jane Smith',
-                'jane.smith@example.com',
-                '081234567891',
-                'password123',
+                'Siti Nurhaliza',
                 'user',
-                '1234567891',
-                'female',
-                'XI-2',
-                'XI',
-                '2023'
+                '', // Email kosong, akan digenerate otomatis
+                '', // NISN kosong, tidak error
+                'P',
+                '2024', // Required
+                'XI-B', // Required - rombel akan dibuat otomatis jika belum ada
+                'XI', // Required
             ]);
-            
+
+            fputcsv($file, [
+                'Admin User',
+                'admin',
+                'admin@snesa.local',
+                '', // NISN kosong, tidak error
+                '', // Gender kosong
+                '2024', // Required
+                'X-1', // Required
+                'X', // Required
+            ]);
+
+            // Add empty row for template
+            fputcsv($file, ['', '', '', '', '', '', '', '']);
+
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Get available rombel names for template reference
+     */
+    public function getAvailableRombel()
+    {
+        try {
+            $rombels = RombonganBelajar::select('nama_rombel', 'tingkat', 'tahun_angkatan')
+                ->orderBy('tahun_angkatan', 'desc')
+                ->orderBy('tingkat', 'asc')
+                ->orderBy('nama_rombel', 'asc')
+                ->get()
+                ->map(function($rombel) {
+                    return "{$rombel->nama_rombel} ({$rombel->tingkat} - {$rombel->tahun_angkatan})";
+                })
+                ->toArray();
+
+            return response()->json([
+                'message' => 'Data rombel berhasil diambil',
+                'success' => true,
+                'data' => [
+                    'available_rombel' => $rombels,
+                    'total' => count($rombels),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengambil data rombel',
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

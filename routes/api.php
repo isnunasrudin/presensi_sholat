@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // User import routes (admin only)
     Route::post('/users/import', [UserImportController::class, 'import']);
     Route::get('/users/import/template', [UserImportController::class, 'downloadTemplate']);
+    Route::get('/users/import/rombel', [UserImportController::class, 'getAvailableRombel']);
 
     // Rombongan Belajar management routes (admin only)
     Route::apiResource('rombongan-belajar', RombonganBelajarController::class);

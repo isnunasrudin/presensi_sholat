@@ -36,6 +36,12 @@ const routes = [
                 meta: { requiresAdmin: true },
             },
             {
+                path: 'users/import',
+                name: 'UserImport',
+                component: () => import('../pages/UserImport.vue'),
+                meta: { requiresAdmin: true },
+            },
+            {
                 path: 'rombongan-belajar',
                 name: 'RombonganBelajar',
                 component: () => import('../pages/RombonganBelajar.vue'),
