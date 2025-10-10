@@ -1,4 +1,4 @@
-FROM serversideup/php:8.2-fpm-nginx-alpine
+FROM serversideup/php:8.3-fpm-nginx-alpine
 WORKDIR /var/www/html 
 USER root
 
