@@ -14,14 +14,15 @@ return new class extends Migration
         Schema::create('prayer_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('prayer_type', ['dhuhur', 'dhuha']);
+            $table->enum('prayer_type', ['subuh', 'dhuhur', 'ashar', 'maghrib', 'isya', 'dhuha']);
             $table->date('date');
-            $table->enum('status', ['sholat', 'tidak_sholat', 'halangan']);
-            $table->text('notes')->nullable();
+            $table->enum('status', ['sholat', 'halangan', 'sakit', 'kosong'])->default('kosong');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
-            
-            // Unique constraint: one record per user per prayer type per day
+
             $table->unique(['user_id', 'prayer_type', 'date']);
+            $table->index(['user_id', 'date']);
+            $table->index(['prayer_type', 'date']);
         });
     }
 

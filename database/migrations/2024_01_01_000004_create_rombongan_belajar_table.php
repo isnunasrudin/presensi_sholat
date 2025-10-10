@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('rombongan_belajar', function (Blueprint $table) {
-            $table->string('tahun_angkatan')->change();
+        Schema::create('rombongan_belajar', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_rombel');
+            $table->string('tahun_angkatan');
+            $table->timestamps();
+
+            $table->unique(['nama_rombel', 'tahun_angkatan']);
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('rombongan_belajar', function (Blueprint $table) {
-            $table->integer('tahun_angkatan')->change();
-        });
+        Schema::dropIfExists('rombongan_belajar');
     }
 };
