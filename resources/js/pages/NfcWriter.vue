@@ -14,18 +14,36 @@
 
           <div class="user-selection">
             <h3>Pilih Pengguna</h3>
-            <div class="field">
-              <label for="userSelect">Pengguna</label>
-              <Dropdown 
-                id="userSelect"
-                v-model="selectedUser" 
-                :options="users" 
-                optionLabel="name" 
-                optionValue="id"
-                placeholder="Pilih pengguna"
-                :loading="loadingUsers"
-                @change="onUserSelect"
-              />
+            <div class="filters">
+              <div class="field">
+                <label for="classSelect">Kelas</label>
+                <Dropdown
+                  id="classSelect"
+                  v-model="selectedClass"
+                  :options="classes"
+                  optionLabel="nama_kelas"
+                  optionValue="id"
+                  placeholder="Pilih kelas"
+                  :loading="loadingClasses"
+                  @change="onClassSelect"
+                  filter
+                />
+              </div>
+              <div class="field">
+                <label for="userSelect">Pengguna</label>
+                <Dropdown
+                  id="userSelect"
+                  v-model="selectedUser"
+                  :options="filteredUsers"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Pilih pengguna"
+                  :loading="loadingUsers"
+                  :disabled="!selectedClass"
+                  @change="onUserSelect"
+                  filter
+                />
+              </div>
             </div>
           </div>
 
@@ -81,9 +99,12 @@ import api from '../api/axios';
 
 // State variables
 const toast = useToast();
-const users = ref([]);
+const classes = ref([]);
+const filteredUsers = ref([]);
+const selectedClass = ref(null);
 const selectedUser = ref(null);
 const userUrl = ref('');
+const loadingClasses = ref(false);
 const loadingUsers = ref(false);
 const isWriting = ref(false);
 const nfcSupported = ref(false);
@@ -106,19 +127,59 @@ onMounted(() => {
   }
 });
 
-// Fetch users
-const fetchUsers = async () => {
+// Fetch classes
+const fetchClasses = async () => {
+  loadingClasses.value = true;
+  try {
+    const response = await api.get('/rombongan-belajar');
+    const data = response.data.data || response.data;
+
+    // Calculate nama_kelas for each rombel
+    classes.value = data.map(rombel => ({
+      ...rombel,
+      nama_kelas: `${rombel.tingkat}-${rombel.nama_rombel}`
+    }));
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Gagal mengambil daftar kelas',
+      life: 3000
+    });
+  } finally {
+    loadingClasses.value = false;
+  }
+};
+
+
+// Handle class selection
+const onClassSelect = async () => {
+  // Reset selected user and URL
+  selectedUser.value = null;
+  userUrl.value = '';
+
+  if (selectedClass.value) {
+    // Fetch users for the selected class
+    await fetchUsersByClass(selectedClass.value);
+  } else {
+    filteredUsers.value = [];
+  }
+};
+
+// Fetch users by class
+const fetchUsersByClass = async (rombelId) => {
   loadingUsers.value = true;
   try {
-    const response = await api.get('/users');
-    users.value = response.data.data || response.data;
+    const response = await api.get(`/users/by-class/${rombelId}`);
+    filteredUsers.value = response.data || [];
   } catch (error) {
-    toast.add({ 
-      severity: 'error', 
-      summary: 'Error', 
-      detail: 'Gagal mengambil daftar pengguna', 
-      life: 3000 
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Gagal mengambil daftar siswa untuk kelas ini',
+      life: 3000
     });
+    filteredUsers.value = [];
   } finally {
     loadingUsers.value = false;
   }
@@ -262,9 +323,9 @@ const writeToNFC = async () => {
   }
 };
 
-// Fetch users on component mount
+// Fetch data on component mount
 onMounted(() => {
-  fetchUsers();
+  fetchClasses();
 });
 </script>
 
@@ -301,10 +362,18 @@ onMounted(() => {
   margin: 0.5rem 0;
 }
 
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
 }
 
 .field label {

@@ -37,7 +37,7 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->with(['rombonganBelajar'])->orderBy('created_at', 'desc')->paginate(1000);
+        $users = $query->with(['rombonganBelajar'])->orderBy('created_at', 'desc')->paginate(15);
 
         return response()->json($users);
     }
@@ -150,6 +150,26 @@ class UserController extends Controller
             'message' => 'User updated successfully',
             'data' => $user,
         ]);
+    }
+
+    /**
+     * Get users by rombongan belajar class
+     */
+    public function getUsersByClass(Request $request, string $rombelId)
+    {
+        // Only admin can access this endpoint
+        if (!$request->user()->isAdmin()) {
+            return response()->json([
+                'message' => 'Unauthorized access',
+            ], 403);
+        }
+
+        $users = User::where('role', 'user')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
     }
 
     /**

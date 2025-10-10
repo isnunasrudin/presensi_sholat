@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User management routes (admin only for most operations)
     Route::apiResource('users', UserController::class);
+    Route::get('/users/by-class/{rombelId}', [UserController::class, 'getUsersByClass']);
     
     // User import routes (admin only)
     Route::post('/users/import', [UserImportController::class, 'import']);
