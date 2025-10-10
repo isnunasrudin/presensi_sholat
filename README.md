@@ -179,10 +179,3 @@ npm run dev
 ## Lisensi
 
 Open Source - MIT License
-
-## TODO
-- Filter per kelas
-- Opacity
-- Message error saat write
-- Rekap per rombel table
-- Rekap excel

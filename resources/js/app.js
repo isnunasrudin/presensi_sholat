@@ -25,6 +25,13 @@ import Card from 'primevue/card';
 import Chart from 'primevue/chart';
 import Paginator from 'primevue/paginator';
 import DataView from 'primevue/dataview';
+import ProgressSpinner from 'primevue/progressspinner';
+import Badge from 'primevue/badge';
+import Timeline from 'primevue/timeline';
+import Fieldset from 'primevue/fieldset';
+import SelectButton from 'primevue/selectbutton';
+import Knob from 'primevue/knob';
+import Message from 'primevue/message';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -59,5 +66,12 @@ app.component('Card', Card);
 app.component('Chart', Chart);
 app.component('Paginator', Paginator);
 app.component('DataView', DataView);
+app.component('ProgressSpinner', ProgressSpinner);
+app.component('Badge', Badge);
+app.component('Timeline', Timeline);
+app.component('Fieldset', Fieldset);
+app.component('SelectButton', SelectButton);
+app.component('Knob', Knob);
+app.component('Message', Message);
 
 app.mount('#app');

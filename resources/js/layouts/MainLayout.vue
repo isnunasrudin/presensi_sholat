@@ -24,7 +24,7 @@
                     </router-link>
                     <router-link to="/prayer-records" class="nav-link">
                         <i class="pi pi-calendar"></i>
-                        <span>Catatan Sholat</span>
+                        <span>Sholat Dhuhur & Dhuha</span>
                     </router-link>
                     
                     <!-- Admin Menu Dropdown -->
@@ -46,6 +46,10 @@
                             <router-link to="/user-recap" class="dropdown-item" @click="adminMenuOpen = false">
                                 <i class="pi pi-chart-bar"></i>
                                 <span>Rekap Pengguna</span>
+                            </router-link>
+                            <router-link to="/excel-export" class="dropdown-item" @click="adminMenuOpen = false">
+                                <i class="pi pi-file-excel"></i>
+                                <span>Export Sholat</span>
                             </router-link>
                             <div class="dropdown-divider"></div>
                             <router-link to="/nfc-scanner" class="dropdown-item" @click="adminMenuOpen = false">
@@ -100,7 +104,7 @@
                         </router-link>
                         <router-link to="/prayer-records" class="mobile-nav-link" @click="mobileMenuOpen = false">
                             <i class="pi pi-calendar"></i>
-                            <span>Catatan Sholat</span>
+                            <span>Sholat Dhuhur & Dhuha</span>
                         </router-link>
                         <router-link v-if="authStore.isAdmin" to="/users" class="mobile-nav-link" @click="mobileMenuOpen = false">
                             <i class="pi pi-users"></i>
@@ -113,6 +117,10 @@
                         <router-link v-if="authStore.isAdmin" to="/user-recap" class="mobile-nav-link" @click="mobileMenuOpen = false">
                             <i class="pi pi-chart-bar"></i>
                             <span>Rekap Pengguna</span>
+                        </router-link>
+                        <router-link v-if="authStore.isAdmin" to="/excel-export" class="mobile-nav-link" @click="mobileMenuOpen = false">
+                            <i class="pi pi-file-excel"></i>
+                            <span>Export Sholat</span>
                         </router-link>
                         <!-- Profile link for all users -->
                         <router-link to="/profile" class="mobile-nav-link" @click="mobileMenuOpen = false">
@@ -247,7 +255,7 @@ document.addEventListener('click', (event) => {
 .header {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);
     color: white;
     box-shadow:
@@ -308,7 +316,7 @@ document.addEventListener('click', (event) => {
     height: 100vh;
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
     border-left: 1px solid rgba(255, 255, 255, 0.25);
     box-shadow:
         -4px 0 32px rgba(0, 0, 0, 0.2),

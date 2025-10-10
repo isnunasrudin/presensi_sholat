@@ -48,6 +48,12 @@ const routes = [
                 meta: { requiresAdmin: true },
             },
             {
+                path: 'excel-export',
+                name: 'ExcelExport',
+                component: () => import('../pages/ExcelExport.vue'),
+                meta: { requiresAdmin: true },
+            },
+            {
                 path: 'nfc-scanner',
                 name: 'NfcScanner',
                 component: () => import('../pages/NfcScanner.vue'),

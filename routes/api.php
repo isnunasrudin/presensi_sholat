@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RombonganBelajarController;
 use App\Http\Controllers\Api\UserImportController;
+use App\Http\Controllers\ExcelExportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,4 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/rombongan-belajar-tahun-angkatan', [RombonganBelajarController::class, 'getTahunAngkatan']);
     Route::post('/rombongan-belajar/promote/{tahunAngkatan}', [RombonganBelajarController::class, 'promote']);
     Route::post('/rombongan-belajar/graduate/{tingkat}', [RombonganBelajarController::class, 'graduate']);
+
+    // Excel Export routes
+    Route::get('/export/monthly-recap', [ExcelExportController::class, 'exportMonthlyRecap']);
+    Route::get('/export/class/{rombelId}', [ExcelExportController::class, 'exportClassData']);
+    Route::get('/export/available-months', [ExcelExportController::class, 'getAvailableMonths']);
+    Route::get('/export/month-statistics', [ExcelExportController::class, 'getMonthStatistics']);
 });

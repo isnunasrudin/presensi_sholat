@@ -11,7 +11,7 @@
 }
 
 /* Browser compatibility and normalization for liquid glass effects */
-@supports (-webkit-backdrop-filter: blur(1px)) {
+@supports (backdrop-filter: blur(1px)) {
     .liquid-glass-support {
         --webkit-support: 1;
     }
@@ -24,7 +24,7 @@
 }
 
 /* Fallback for browsers that don't support backdrop-filter */
-@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports not ((backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     .card,
     .btn-glass,
     .input-glass,
@@ -102,7 +102,7 @@ body::before {
 .card {
     position: relative;
     background: rgba(255, 255, 255, 0.12);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
@@ -180,7 +180,7 @@ body::before {
     position: relative;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 14px;
     color: white;
@@ -233,7 +233,7 @@ body::before {
 /* Enhanced liquid glass effect for inputs */
 .input-glass {
     background: rgba(255, 255, 255, 0.15);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
     backdrop-filter: blur(12px) saturate(150%);
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 14px;
@@ -339,7 +339,7 @@ h6 {
 /* Liquid Glass Buttons */
 .p-button {
     background: rgba(255, 255, 255, 0.2) !important;
-    -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
+    backdrop-filter: blur(10px) saturate(150%) !important;
     backdrop-filter: blur(10px) saturate(150%) !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
     border-radius: 12px !important;
@@ -425,7 +425,7 @@ h6 {
 .p-calendar input,
 .p-password input {
     background: rgba(255, 255, 255, 0.18) !important;
-    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
     backdrop-filter: blur(15px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 14px !important;
@@ -478,7 +478,7 @@ h6 {
 .p-card {
     background: rgba(255, 255, 255, 0.12) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     border-radius: 20px !important;
     box-shadow: 
@@ -514,7 +514,7 @@ h6 {
 .p-datatable {
     background: rgba(255, 255, 255, 0.12) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     border-radius: 16px !important;
     overflow: hidden !important;
@@ -558,7 +558,7 @@ h6 {
 /* Liquid Glass Dialog - Enhanced Readability */
 .p-dialog {
     background: rgba(0, 0, 0, 0.25) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
     backdrop-filter: blur(30px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 24px !important;
@@ -595,7 +595,7 @@ h6 {
     padding: 1.5rem 1.5rem 1rem 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
     /* Ensure header doesn't interfere with drag functionality */
     cursor: move !important;
@@ -620,7 +620,7 @@ h6 {
     justify-content: center !important;
     transition: all 0.3s ease !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     /* Ensure close button doesn't interfere with drag */
     cursor: pointer !important;
@@ -641,7 +641,7 @@ h6 {
     padding: 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     backdrop-filter: blur(5px) !important;
     border-radius: 0 0 24px 24px !important;
 }
@@ -682,14 +682,14 @@ h6 {
     padding: 1rem 1.5rem 1.5rem 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
 }
 
 /* Liquid Glass Dropdown - Enhanced Consistency */
 .p-dropdown {
     background: rgba(255, 255, 255, 0.18) !important;
-    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
     backdrop-filter: blur(15px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 14px !important;
@@ -757,7 +757,7 @@ h6 {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 0 14px 14px 0 !important;
     transition: all 0.3s ease !important;
@@ -779,7 +779,7 @@ h6 {
 .p-dropdown-panel {
     background: rgba(255, 255, 255, 0.18) !important;
     backdrop-filter: blur(25px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+    backdrop-filter: blur(25px) saturate(200%) !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
     border-radius: 16px !important;
     box-shadow:
@@ -812,7 +812,7 @@ h6 {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 1rem !important;
     backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     position: relative !important;
     z-index: 1 !important;
 }
@@ -823,7 +823,7 @@ h6 {
     border-radius: 10px !important;
     color: white !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
 }
 
 .p-dropdown-panel .p-dropdown-filter::placeholder {
@@ -850,7 +850,7 @@ h6 {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border: 1px solid transparent !important;
 }
 
@@ -889,7 +889,7 @@ h6 {
 .p-select {
     background: rgba(255, 255, 255, 0.18) !important;
     backdrop-filter: blur(15px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 14px !important;
     box-shadow:
@@ -979,7 +979,7 @@ h6 {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 0 14px 14px 0 !important;
     transition: all 0.3s ease !important;
@@ -996,7 +996,7 @@ h6 {
     color: white !important;
     background: rgba(255, 255, 255, 0.1) !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border-radius: 50% !important;
     transition: all 0.3s ease !important;
 }
@@ -1010,7 +1010,7 @@ h6 {
 .p-select-overlay {
     background: rgba(255, 255, 255, 0.18) !important;
     backdrop-filter: blur(25px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+    backdrop-filter: blur(25px) saturate(200%) !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
     border-radius: 16px !important;
     box-shadow:
@@ -1043,7 +1043,7 @@ h6 {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 1rem !important;
     backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     position: relative !important;
     z-index: 1 !important;
 }
@@ -1054,7 +1054,7 @@ h6 {
     border-radius: 10px !important;
     color: white !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     width: 100% !important;
 }
 
@@ -1082,7 +1082,7 @@ h6 {
     border-radius: 8px !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(3px) !important;
-    -webkit-backdrop-filter: blur(3px) !important;
+    backdrop-filter: blur(3px) !important;
 }
 
 .p-select-option {
@@ -1094,7 +1094,7 @@ h6 {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
     backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     border: 1px solid transparent !important;
     cursor: pointer !important;
 }
@@ -1177,7 +1177,7 @@ h6 {
 .p-datepicker {
     background: rgba(255, 255, 255, 0.15) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 16px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
@@ -1262,7 +1262,7 @@ h6 {
 .p-toast .p-toast-message {
     background: rgba(255, 255, 255, 0.15) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 16px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
@@ -1300,33 +1300,86 @@ h6 {
     background: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Liquid Glass Textarea */
-.p-inputtextarea {
-    background: rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(12px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
-    border-radius: 12px !important;
+/* Liquid Glass Textarea - Enhanced to match other inputs */
+.p-inputtextarea,
+.p-textarea,
+.p-textarea textarea,
+textarea.p-inputtextarea {
+    background: rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 14px !important;
     color: white !important;
     resize: vertical !important;
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    padding: 0.875rem 1.125rem !important;
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
 }
 
-.p-inputtextarea::placeholder {
+/* Enhanced textarea within dialogs */
+.p-dialog .p-inputtextarea,
+.p-dialog .p-textarea,
+.p-dialog .p-textarea textarea,
+.p-dialog textarea.p-inputtextarea,
+.p-confirm-dialog .p-inputtextarea,
+.p-confirm-dialog .p-textarea,
+.p-confirm-dialog .p-textarea textarea,
+.p-confirm-dialog textarea.p-inputtextarea {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.p-inputtextarea::placeholder,
+.p-textarea::placeholder,
+.p-textarea textarea::placeholder,
+textarea.p-inputtextarea::placeholder {
     color: rgba(255, 255, 255, 0.65) !important;
+    font-style: italic !important;
 }
 
-.p-inputtextarea:enabled:focus {
+.p-inputtextarea:enabled:hover,
+.p-textarea:enabled:hover,
+.p-textarea textarea:enabled:hover,
+textarea.p-inputtextarea:enabled:hover {
+    border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.p-inputtextarea:enabled:focus,
+.p-textarea:enabled:focus,
+.p-textarea textarea:enabled:focus,
+textarea.p-inputtextarea:enabled:focus {
     background: rgba(255, 255, 255, 0.22) !important;
     border-color: rgba(255, 255, 255, 0.55) !important;
-    box-shadow: 
+    box-shadow:
         0 0 0 3px rgba(255, 255, 255, 0.15),
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
         0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-1px);
+    outline: none !important;
+}
+
+/* Additional specific selector for PrimeVue Textarea component */
+.p-textarea {
+    width: 100% !important;
+}
+
+.p-textarea .p-inputtextarea {
+    width: 100% !important;
 }
 
 /* Liquid Glass Confirm Dialog - Enhanced Readability */
 .p-confirm-dialog {
     background: rgba(0, 0, 0, 0.25) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
     backdrop-filter: blur(30px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 24px !important;
@@ -1362,7 +1415,7 @@ h6 {
     padding: 1.5rem 1.5rem 1rem 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
     /* Ensure header doesn't interfere with drag functionality */
     cursor: move !important;
@@ -1382,7 +1435,7 @@ h6 {
     padding: 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
     backdrop-filter: blur(5px) !important;
     border-radius: 0 0 24px 24px !important;
 }
@@ -1402,7 +1455,7 @@ h6 {
     padding: 1rem 1.5rem 1.5rem 1.5rem !important;
     position: relative !important;
     z-index: 1 !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
 }
 
@@ -1518,6 +1571,7 @@ h1, h2, h3, h4, h5, h6, p, span, div {
     font-size: 1.125rem !important;
     min-width: 1.5rem !important;
     flex-shrink: 0 !important;
+    color: white !important;
 }
 
 /* Toast text styling for better readability */
@@ -1535,6 +1589,7 @@ h1, h2, h3, h4, h5, h6, p, span, div {
     margin-bottom: 0.25rem !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
+    color: white !important;
 }
 
 /* Toast detail text styling */
@@ -1543,6 +1598,7 @@ h1, h2, h3, h4, h5, h6, p, span, div {
     line-height: 1.3 !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
+    color: white !important;
 }
 
 /* Toast close button for mobile */
@@ -1649,6 +1705,7 @@ h1, h2, h3, h4, h5, h6, p, span, div {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
+    color: white !important;
 }
 
 /* Ensure multiple toasts stack properly */
@@ -1708,21 +1765,21 @@ h1, h2, h3, h4, h5, h6, p, span, div {
 
 /* Additional utilities for liquid glass consistency */
 .liquid-glass {
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .liquid-glass-intense {
-    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    backdrop-filter: blur(30px) saturate(200%);
     backdrop-filter: blur(30px) saturate(200%);
     background: rgba(255, 255, 255, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .liquid-glass-subtle {
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
     backdrop-filter: blur(10px) saturate(150%);
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1731,7 +1788,7 @@ h1, h2, h3, h4, h5, h6, p, span, div {
 /* Enhanced modal utility classes for better readability */
 .modal-dark {
     background: rgba(0, 0, 0, 0.25) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
     backdrop-filter: blur(30px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
