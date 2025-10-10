@@ -37,7 +37,7 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->with(['rombonganBelajar'])->orderBy('created_at', 'desc')->paginate(15);
+        $users = $query->with(['rombonganBelajar'])->orderBy('created_at', 'desc')->paginate(1000);
 
         return response()->json($users);
     }
