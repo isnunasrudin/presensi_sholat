@@ -84,7 +84,7 @@ class PrayerRecordController extends Controller
             // Update existing record with new status
             $existingRecord->update([
                 'status' => $request->status,
-                'notes' => $request->notes,
+                'keterangan' => $request->notes,
             ]);
 
             return response()->json([
@@ -100,7 +100,7 @@ class PrayerRecordController extends Controller
             'prayer_type' => $request->prayer_type,
             'date' => $request->date,
             'status' => $request->status,
-            'notes' => $request->notes,
+            'keterangan' => $request->notes,
         ]);
 
         return response()->json([
@@ -148,7 +148,7 @@ class PrayerRecordController extends Controller
 
         $record->update([
             'status' => $request->status,
-            'notes' => $request->notes,
+            'keterangan' => $request->notes,
         ]);
 
         return response()->json([
@@ -309,10 +309,10 @@ class PrayerRecordController extends Controller
                 'name' => $user->name,
                 'rombel' => $user->rombonganBelajar ? ($user->rombonganBelajar->tingkat . '-' . $user->rombonganBelajar->nama_rombel) : 'Tidak ada rombel',
                 'dhuha_status' => $dhuhaRecord->status ?? null,
-                'dhuha_notes' => $dhuhaRecord->notes ?? null,
+                'dhuha_notes' => $dhuhaRecord->keterangan ?? null,
                 'dhuha_record_id' => $dhuhaRecord->id ?? null,
                 'dhuhur_status' => $dhuhurRecord->status ?? null,
-                'dhuhur_notes' => $dhuhurRecord->notes ?? null,
+                'dhuhur_notes' => $dhuhurRecord->keterangan ?? null,
                 'dhuhur_record_id' => $dhuhurRecord->id ?? null,
             ];
         });
